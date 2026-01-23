@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsEnum, IsEmail } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsEnum, IsEmail, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { StoreType, StoreStatus } from '@prisma/client';
 
@@ -27,6 +27,27 @@ export class CreateStoreDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  // BIR Compliance Fields
+  @ApiPropertyOptional({ example: 'ABC Corporation', description: 'Official business name registered with BIR' })
+  @IsOptional()
+  @IsString()
+  registeredName?: string;
+
+  @ApiPropertyOptional({ example: '123 Business Ave, Makati City', description: 'Address registered with BIR' })
+  @IsOptional()
+  @IsString()
+  registeredAddress?: string;
+
+  @ApiPropertyOptional({ example: '123-456-789-000', description: 'VAT TIN' })
+  @IsOptional()
+  @IsString()
+  vatTin?: string;
+
+  @ApiPropertyOptional({ example: true, description: 'Is VAT registered' })
+  @IsOptional()
+  @IsBoolean()
+  isVatRegistered?: boolean;
 }
 
 export class UpdateStoreDto {
@@ -59,4 +80,25 @@ export class UpdateStoreDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  // BIR Compliance Fields
+  @ApiPropertyOptional({ example: 'ABC Corporation', description: 'Official business name registered with BIR' })
+  @IsOptional()
+  @IsString()
+  registeredName?: string;
+
+  @ApiPropertyOptional({ example: '123 Business Ave, Makati City', description: 'Address registered with BIR' })
+  @IsOptional()
+  @IsString()
+  registeredAddress?: string;
+
+  @ApiPropertyOptional({ example: '123-456-789-000', description: 'VAT TIN' })
+  @IsOptional()
+  @IsString()
+  vatTin?: string;
+
+  @ApiPropertyOptional({ example: true, description: 'Is VAT registered' })
+  @IsOptional()
+  @IsBoolean()
+  isVatRegistered?: boolean;
 }

@@ -5,7 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PosService } from '../pos/pos.service';
-import { SyncRequestDto, HeartbeatDto, SyncUserDto, SyncCategoryDto, SyncItemDto, DeletedRecordDto } from './dto';
+import {
+  SyncRequestDto,
+  HeartbeatDto,
+  SyncUserDto,
+  SyncCategoryDto,
+  SyncItemDto,
+  DeletedRecordDto,
+} from './dto';
 import { SyncType, SyncStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 
@@ -52,7 +59,9 @@ export class SyncService {
     const storeId = posDevice.branch.storeId;
     const branchId = posDevice.branchId;
     const syncType = syncRequestDto.syncType || SyncType.FULL;
-    const lastSyncAt = syncRequestDto.lastSyncAt ? new Date(syncRequestDto.lastSyncAt) : undefined;
+    const lastSyncAt = syncRequestDto.lastSyncAt
+      ? new Date(syncRequestDto.lastSyncAt)
+      : undefined;
 
     let syncLog;
     try {
@@ -76,9 +85,10 @@ export class SyncService {
       );
 
       // Calculate item count
-      const itemCount = (syncData.users?.length || 0) +
-                       (syncData.categories?.length || 0) +
-                       (syncData.items?.length || 0);
+      const itemCount =
+        (syncData.users?.length || 0) +
+        (syncData.categories?.length || 0) +
+        (syncData.items?.length || 0);
 
       // Update sync log with results
       await this.prisma.syncLog.update({
@@ -118,11 +128,32 @@ export class SyncService {
         newValue: { syncType, itemCount },
       });
 
+      // Get BIR configuration from store, branch, and device
+      const birConfig = {
+        // Store-level BIR info
+        registeredName: posDevice.branch.store.registeredName || posDevice.branch.store.name,
+        registeredAddress: posDevice.branch.store.registeredAddress || posDevice.branch.store.address || '',
+        vatTin: posDevice.branch.store.vatTin || '',
+        isVatRegistered: posDevice.branch.store.isVatRegistered ?? true,
+        // Branch-level PTU info
+        ptuNo: posDevice.branch.ptuNo || '',
+        ptuDateIssued: posDevice.branch.ptuDateIssued?.toISOString().split('T')[0] || '',
+        ptuValidUntil: posDevice.branch.ptuValidUntil?.toISOString().split('T')[0] || '',
+        accreditationNo: posDevice.branch.accreditationNo || '',
+        // Device-level MIN info
+        min: posDevice.min || '',
+        serialNumber: posDevice.serialNumber || '',
+        permitNumber: posDevice.permitNumber || '',
+      };
+
       return {
         success: true,
         ...syncData,
         storeId,
         branchId,
+        storeName: posDevice.branch.store.name,
+        branchName: posDevice.branch.name,
+        birConfig,
         syncedAt: new Date(),
       };
     } catch (error) {
@@ -253,10 +284,11 @@ export class SyncService {
 
       users = storeUsers.map((su) => {
         // Determine role based on permissions
-        const hasManagerPermissions = su.role?.rolePermissions?.some(rp =>
-          rp.permission.code.includes('void') ||
-          rp.permission.code.includes('refund') ||
-          rp.permission.code.includes('discount')
+        const hasManagerPermissions = su.role?.rolePermissions?.some(
+          (rp) =>
+            rp.permission.code.includes('void') ||
+            rp.permission.code.includes('refund') ||
+            rp.permission.code.includes('discount'),
         );
 
         return {
@@ -442,7 +474,9 @@ export class SyncService {
       categories,
       items,
       deletedUsers: deletedUsers?.length ? deletedUsers : undefined,
-      deletedCategories: deletedCategories?.length ? deletedCategories : undefined,
+      deletedCategories: deletedCategories?.length
+        ? deletedCategories
+        : undefined,
       deletedItems: deletedItems?.length ? deletedItems : undefined,
     };
   }

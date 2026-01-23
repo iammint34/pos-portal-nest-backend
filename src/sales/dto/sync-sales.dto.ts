@@ -19,7 +19,6 @@ export enum OrderStatus {
   COMPLETED = 'COMPLETED',
   VOIDED = 'VOIDED',
   REFUNDED = 'REFUNDED',
-  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
 }
 
 export enum PaymentMethod {

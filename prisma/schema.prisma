@@ -29,6 +29,7 @@ model User {
   storeUsers    StoreUser[]
   refreshTokens RefreshToken[]
   auditLogs     AuditLog[]
+  shifts        Shift[]
 
   @@map("users")
 }
@@ -131,6 +132,12 @@ model Store {
   updatedAt DateTime    @updatedAt @map("updated_at")
   deletedAt DateTime?   @map("deleted_at")
 
+  // BIR Compliance Fields
+  registeredName    String?   @map("registered_name") @db.VarChar(255)    // Official BIR-registered business name
+  registeredAddress String?   @map("registered_address") @db.Text         // BIR-registered address
+  vatTin            String?   @map("vat_tin") @db.VarChar(20)             // VAT Registration TIN (e.g., "123-456-789-000")
+  isVatRegistered   Boolean   @default(true) @map("is_vat_registered")   // Is the business VAT registered?
+
   // Relations
   branches   Branch[]
   storeUsers StoreUser[]
@@ -184,6 +191,12 @@ model Branch {
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
   deletedAt    DateTime?    @map("deleted_at")
+
+  // BIR Compliance Fields - PTU (Permit To Use) info per branch
+  ptuNo           String?   @map("ptu_no") @db.VarChar(50)      // Permit To Use Number (e.g., "PTU-1234-567-890")
+  ptuDateIssued   DateTime? @map("ptu_date_issued")             // Date PTU was issued
+  ptuValidUntil   DateTime? @map("ptu_valid_until")             // PTU expiry date (null = "No Expiry")
+  accreditationNo String?   @map("accreditation_no") @db.VarChar(50) // BIR Accreditation Number
 
   // Relations
   store         Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -311,10 +324,17 @@ model PosDevice {
   updatedAt                 DateTime  @updatedAt @map("updated_at")
   deletedAt                 DateTime? @map("deleted_at")
 
+  // BIR Compliance Fields
+  min               String?   @db.VarChar(50)                            // Machine Identification Number (e.g., "260123-POS-001")
+  serialNumber      String?   @map("serial_number") @db.VarChar(50)      // Hardware serial number
+  permitNumber      String?   @map("permit_number") @db.VarChar(50)      // BIR permit number for this specific machine
+
   // Relations
-  branch   Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  syncLogs SyncLog[]
-  orders   Order[]
+  branch     Branch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  syncLogs   SyncLog[]
+  orders     Order[]
+  shifts     Shift[]
+  zReadings  ZReading[]
 
   @@index([branchId])
   @@index([registrationCode])
@@ -408,7 +428,6 @@ enum OrderStatus {
   COMPLETED
   VOIDED
   REFUNDED
-  PARTIALLY_REFUNDED
 }
 
 enum OrderType {
@@ -433,7 +452,6 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
-  PARTIALLY_REFUNDED
 }
 
 enum DiscountType {
@@ -452,15 +470,33 @@ model Order {
   posDeviceId     String      @map("pos_device_id")
   branchId        String      @map("branch_id")
   storeId         String      @map("store_id")
+  shiftId         String?     @map("shift_id") // Reference to shift this order belongs to
+  operatorId      String?     @map("operator_id") // Portal user ID of operator
+  posOperatorId   String?     @map("pos_operator_id") // POS operator ID for reference
   orderNumber     String      @map("order_number") // Human-readable order number
+  invoiceNumber   String?     @map("invoice_number") // BIR sequential invoice number (e.g., "SI-000001")
   orderType       OrderType   @default(DINE_IN) @map("order_type")
   status          OrderStatus @default(COMPLETED)
   subtotal        Decimal     @db.Decimal(10, 2)
   discountTotal   Decimal     @default(0) @db.Decimal(10, 2) @map("discount_total")
   taxTotal        Decimal     @default(0) @db.Decimal(10, 2) @map("tax_total")
   grandTotal      Decimal     @db.Decimal(10, 2) @map("grand_total")
+
+  // BIR VAT Breakdown
+  vatableSales    Decimal     @default(0) @db.Decimal(10, 2) @map("vatable_sales")    // VATable portion (grandTotal / 1.12)
+  vatAmount       Decimal     @default(0) @db.Decimal(10, 2) @map("vat_amount")       // 12% VAT amount
+  vatExemptSales  Decimal     @default(0) @db.Decimal(10, 2) @map("vat_exempt_sales") // VAT-exempt sales
+  zeroRatedSales  Decimal     @default(0) @db.Decimal(10, 2) @map("zero_rated_sales") // Zero-rated sales
+
+  // Customer Info
   customerName    String?     @map("customer_name")
   customerPhone   String?     @map("customer_phone")
+
+  // B2B Customer Info (for claiming input tax)
+  customerTin             String?   @map("customer_tin") @db.VarChar(20)           // Customer's TIN
+  customerBusinessName    String?   @map("customer_business_name") @db.VarChar(255)
+  customerBusinessAddress String?   @map("customer_business_address") @db.Text
+
   notes           String?     @db.Text
   posCreatedAt    DateTime    @map("pos_created_at") // When order was created on POS
   posClosedAt     DateTime?   @map("pos_closed_at") // When order was closed on POS
@@ -471,6 +507,7 @@ model Order {
 
   // Relations
   posDevice  PosDevice       @relation(fields: [posDeviceId], references: [id])
+  shift      Shift?          @relation(fields: [shiftId], references: [id])
   orderItems OrderItem[]
   discounts  OrderDiscount[]
   payments   Payment[]
@@ -479,6 +516,8 @@ model Order {
   @@unique([posDeviceId, posOrderId]) // Idempotency constraint
   @@index([branchId])
   @@index([storeId])
+  @@index([shiftId])
+  @@index([invoiceNumber])
   @@index([posCreatedAt])
   @@index([syncBatchId])
   @@index([status])
@@ -577,4 +616,178 @@ model Refund {
   @@index([orderId])
   @@index([paymentId])
   @@map("refunds")
+}
+
+// =====================
+// Shifts & Cash Management (Synced from POS)
+// =====================
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
+}
+
+model Shift {
+  id            String      @id @default(uuid())
+  posShiftId    String      @map("pos_shift_id") // Unique ID from POS for idempotency
+  posDeviceId   String      @map("pos_device_id")
+  branchId      String      @map("branch_id")
+  storeId       String      @map("store_id")
+  operatorId    String?     @map("operator_id") // Portal user ID (resolved from posOperatorId)
+  posOperatorId String      @map("pos_operator_id") // POS user ID
+  status        ShiftStatus @default(OPEN)
+  openedAt      DateTime    @map("opened_at")
+  closedAt      DateTime?   @map("closed_at")
+  openingCash   Decimal     @db.Decimal(10, 2) @map("opening_cash")
+  closingCash   Decimal?    @db.Decimal(10, 2) @map("closing_cash")
+  expectedCash  Decimal?    @db.Decimal(10, 2) @map("expected_cash")
+  variance      Decimal?    @db.Decimal(10, 2)
+  notes         String?     @db.Text
+  orderCount    Int         @default(0) @map("order_count")
+  syncedAt      DateTime    @default(now()) @map("synced_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  posDevice     PosDevice      @relation(fields: [posDeviceId], references: [id])
+  operator      User?          @relation(fields: [posOperatorId], references: [id])
+  cashMovements CashMovement[]
+  orders        Order[]
+
+  @@unique([posDeviceId, posShiftId]) // Idempotency constraint
+  @@index([branchId])
+  @@index([storeId])
+  @@index([operatorId])
+  @@index([posOperatorId])
+  @@index([status])
+  @@index([openedAt])
+  @@map("shifts")
+}
+
+enum CashMovementType {
+  OPENING_FLOAT
+  CASH_SALE
+  CHANGE_GIVEN
+  TIP_CASH
+  PAID_OUT
+  DROP
+  CASH_IN
+  REFUND
+  CLOSING_COUNT
+}
+
+model CashMovement {
+  id            String           @id @default(uuid())
+  shiftId       String           @map("shift_id")
+  movementType  CashMovementType @map("movement_type")
+  amount        Decimal          @db.Decimal(10, 2)
+  referenceType String?          @map("reference_type")
+  referenceId   String?          @map("reference_id")
+  reason        String?          @db.Text
+  performedBy   String           @map("performed_by")
+  performedAt   DateTime         @map("performed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  shift         Shift            @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([shiftId])
+  @@map("cash_movements")
+}
+
+// =====================
+// BIR Compliance - Z-Reading
+// =====================
+
+model ZReading {
+  id                    String    @id @default(uuid())
+  posDeviceId           String    @map("pos_device_id")
+  branchId              String    @map("branch_id")
+  storeId               String    @map("store_id")
+  posZReadingId         String?   @map("pos_z_reading_id") // ID from POS for idempotency
+
+  // Z-Counter (Non-resettable, increments daily)
+  zCounterNo            Int       @map("z_counter_no")
+
+  // Invoice Range
+  beginningInvoiceNo    String    @map("beginning_invoice_no") @db.VarChar(20)
+  endingInvoiceNo       String    @map("ending_invoice_no") @db.VarChar(20)
+
+  // Grand Total Tracking (Non-resettable)
+  beginningGrandTotal   Decimal   @map("beginning_grand_total") @db.Decimal(15, 2)
+  endingGrandTotal      Decimal   @map("ending_grand_total") @db.Decimal(15, 2)
+
+  // Daily Sales Summary
+  grossSales            Decimal   @map("gross_sales") @db.Decimal(15, 2)
+  netSales              Decimal   @map("net_sales") @db.Decimal(15, 2)
+  vatableSales          Decimal   @map("vatable_sales") @db.Decimal(15, 2)
+  vatAmount             Decimal   @map("vat_amount") @db.Decimal(15, 2)
+  vatExemptSales        Decimal   @map("vat_exempt_sales") @db.Decimal(15, 2)
+  zeroRatedSales        Decimal   @map("zero_rated_sales") @db.Decimal(15, 2)
+
+  // Adjustments
+  discountTotal         Decimal   @default(0) @map("discount_total") @db.Decimal(15, 2)
+  refundTotal           Decimal   @default(0) @map("refund_total") @db.Decimal(15, 2)
+  voidTotal             Decimal   @default(0) @map("void_total") @db.Decimal(15, 2)
+
+  // Transaction Counts
+  transactionCount      Int       @map("transaction_count")
+  voidCount             Int       @default(0) @map("void_count")
+  refundCount           Int       @default(0) @map("refund_count")
+
+  // Metadata
+  closedBy              String    @map("closed_by") // User who closed the day
+  closedAt              DateTime  @map("closed_at")
+  syncedAt              DateTime  @default(now()) @map("synced_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  posDevice             PosDevice @relation(fields: [posDeviceId], references: [id])
+
+  @@unique([posDeviceId, posZReadingId])
+  @@unique([posDeviceId, zCounterNo]) // Only one Z-reading per day per device
+  @@index([branchId])
+  @@index([storeId])
+  @@index([closedAt])
+  @@map("z_readings")
+}
+
+// =====================
+// BIR Compliance - Electronic Journal
+// =====================
+
+model ElectronicJournal {
+  id                String    @id @default(uuid())
+  posDeviceId       String    @map("pos_device_id")
+  branchId          String    @map("branch_id")
+  storeId           String    @map("store_id")
+
+  // Transaction Reference
+  orderId           String?   @map("order_id")
+  invoiceNumber     String    @map("invoice_number") @db.VarChar(20)
+  transactionType   String    @map("transaction_type") @db.VarChar(20) // SALE, VOID, REFUND
+
+  // Receipt Content (Read-only, immutable record)
+  receiptContent    String    @map("receipt_content") @db.Text // Full receipt text/JSON
+  receiptHash       String    @map("receipt_hash") @db.VarChar(64) // SHA-256 hash for integrity
+
+  // Amounts
+  grandTotal        Decimal   @map("grand_total") @db.Decimal(10, 2)
+  vatAmount         Decimal   @map("vat_amount") @db.Decimal(10, 2)
+
+  // Operator Info
+  operatorId        String    @map("operator_id")
+  operatorName      String    @map("operator_name") @db.VarChar(100)
+
+  // Timestamps
+  transactionDate   DateTime  @map("transaction_date")
+  syncedAt          DateTime  @default(now()) @map("synced_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@index([posDeviceId])
+  @@index([branchId])
+  @@index([storeId])
+  @@index([invoiceNumber])
+  @@index([transactionDate])
+  @@map("electronic_journal")
 }

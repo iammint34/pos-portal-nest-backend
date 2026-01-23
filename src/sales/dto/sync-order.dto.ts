@@ -27,7 +27,6 @@ export enum OrderStatus {
   COMPLETED = 'COMPLETED',
   VOIDED = 'VOIDED',
   REFUNDED = 'REFUNDED',
-  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
 }
 
 export enum PaymentMethod {
@@ -45,7 +44,6 @@ export enum PaymentStatus {
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
   REFUNDED = 'REFUNDED',
-  PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED',
 }
 
 export enum DiscountType {
@@ -286,6 +284,31 @@ export class SyncOrderDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   grandTotal: number;
+
+  // BIR VAT Breakdown
+  @ApiPropertyOptional({ description: 'VATable portion of sales', default: 0 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  vatableSales?: number;
+
+  @ApiPropertyOptional({ description: '12% VAT amount', default: 0 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  vatAmount?: number;
+
+  @ApiPropertyOptional({ description: 'VAT-exempt sales amount', default: 0 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  vatExemptSales?: number;
+
+  @ApiPropertyOptional({ description: 'Zero-rated sales amount', default: 0 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  zeroRatedSales?: number;
 
   @ApiPropertyOptional({ description: 'Customer name' })
   @IsOptional()

@@ -14,6 +14,8 @@ import { SyncModule } from './sync/sync.module';
 import { RbacModule } from './rbac/rbac.module';
 import { AuditModule } from './audit/audit.module';
 import { SalesModule } from './sales/sales.module';
+import { ShiftsModule } from './shifts/shifts.module';
+import { ReportsModule } from './reports/reports.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { PosDeviceGuard } from './common/guards';
 
@@ -34,6 +36,8 @@ import { PosDeviceGuard } from './common/guards';
     RbacModule,
     AuditModule,
     SalesModule,
+    ShiftsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [

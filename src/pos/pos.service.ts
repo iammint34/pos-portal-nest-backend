@@ -67,6 +67,10 @@ export class PosService {
         registrationCode,
         registrationCodeExpiresAt,
         isRegistered: false,
+        // BIR Compliance Fields
+        min: createDto.min,
+        serialNumber: createDto.serialNumber,
+        permitNumber: createDto.permitNumber,
       },
       include: {
         branch: {

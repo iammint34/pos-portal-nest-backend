@@ -14,6 +14,22 @@ export class CreatePosDeviceDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  // BIR Compliance Fields
+  @ApiPropertyOptional({ example: 'MIN-2024-000001', description: 'Machine Identification Number' })
+  @IsOptional()
+  @IsString()
+  min?: string;
+
+  @ApiPropertyOptional({ example: 'SN123456789', description: 'POS terminal serial number' })
+  @IsOptional()
+  @IsString()
+  serialNumber?: string;
+
+  @ApiPropertyOptional({ example: 'PMT-2024-000001', description: 'BIR Permit Number' })
+  @IsOptional()
+  @IsString()
+  permitNumber?: string;
 }
 
 /**
@@ -106,6 +122,22 @@ export class UpdatePosDto {
   @IsOptional()
   @IsUUID()
   branchId?: string;
+
+  // BIR Compliance Fields
+  @ApiPropertyOptional({ example: 'MIN-2024-000001', description: 'Machine Identification Number' })
+  @IsOptional()
+  @IsString()
+  min?: string;
+
+  @ApiPropertyOptional({ example: 'SN123456789', description: 'POS terminal serial number' })
+  @IsOptional()
+  @IsString()
+  serialNumber?: string;
+
+  @ApiPropertyOptional({ example: 'PMT-2024-000001', description: 'BIR Permit Number' })
+  @IsOptional()
+  @IsString()
+  permitNumber?: string;
 }
 
 export class PosAuthDto {

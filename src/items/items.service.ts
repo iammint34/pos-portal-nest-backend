@@ -325,6 +325,7 @@ export class ItemsService {
         name: createCategoryDto.name,
         description: createCategoryDto.description,
         sortOrder: createCategoryDto.sortOrder ?? 0,
+        isActive: createCategoryDto.isActive ?? true,
       },
     });
 

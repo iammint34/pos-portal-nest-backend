@@ -63,6 +63,11 @@ export class SalesService {
             discountTotal: orderDto.discountTotal || 0,
             taxTotal: orderDto.taxTotal || 0,
             grandTotal: orderDto.grandTotal,
+            // BIR VAT Breakdown
+            vatableSales: orderDto.vatableSales || 0,
+            vatAmount: orderDto.vatAmount || 0,
+            vatExemptSales: orderDto.vatExemptSales || 0,
+            zeroRatedSales: orderDto.zeroRatedSales || 0,
             customerName: orderDto.customerName,
             customerPhone: orderDto.customerPhone,
             notes: orderDto.notes,
