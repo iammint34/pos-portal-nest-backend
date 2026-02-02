@@ -42,11 +42,13 @@ export class SalesController {
   @PosDevice()
   @ApiOperation({
     summary: 'Sync a single order from POS (idempotent)',
-    description: 'Syncs a single order from POS device. Safe to retry - duplicate orders are detected by posOrderId.',
+    description:
+      'Syncs a single order from POS device. Safe to retry - duplicate orders are detected by posOrderId.',
   })
   async syncOrder(
     @Body() syncOrderDto: SyncOrderDto,
-    @CurrentPosDevice() device: { id: string; branchId: string; storeId: string },
+    @CurrentPosDevice()
+    device: { id: string; branchId: string; storeId: string },
   ): Promise<SyncResult> {
     return this.salesService.syncOrder(
       device.id,
@@ -60,11 +62,13 @@ export class SalesController {
   @PosDevice()
   @ApiOperation({
     summary: 'Batch sync multiple orders from POS (idempotent)',
-    description: 'Syncs multiple orders in a batch. Each order is processed independently allowing partial success.',
+    description:
+      'Syncs multiple orders in a batch. Each order is processed independently allowing partial success.',
   })
   async syncOrdersBatch(
     @Body() batchDto: SyncOrdersBatchDto,
-    @CurrentPosDevice() device: { id: string; branchId: string; storeId: string },
+    @CurrentPosDevice()
+    device: { id: string; branchId: string; storeId: string },
   ): Promise<BatchSyncResult> {
     return this.salesService.syncOrdersBatch(
       device.id,
@@ -78,11 +82,13 @@ export class SalesController {
   @PosDevice()
   @ApiOperation({
     summary: 'Void an order',
-    description: 'Marks an order as voided. Idempotent - can be called multiple times safely.',
+    description:
+      'Marks an order as voided. Idempotent - can be called multiple times safely.',
   })
   async voidOrder(
     @Body() voidDto: VoidOrderDto,
-    @CurrentPosDevice() device: { id: string; branchId: string; storeId: string },
+    @CurrentPosDevice()
+    device: { id: string; branchId: string; storeId: string },
   ) {
     return this.salesService.voidOrder(device.id, voidDto);
   }
@@ -95,12 +101,24 @@ export class SalesController {
     summary: 'Get orders with filtering',
     description: 'Retrieve orders for the current store with optional filters.',
   })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Filter by store ID (owners only)' })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Filter by store ID (owners only)',
+  })
   @ApiQuery({ name: 'branchId', required: false })
   @ApiQuery({ name: 'posDeviceId', required: false })
   @ApiQuery({ name: 'status', required: false, enum: OrderStatus })
-  @ApiQuery({ name: 'startDate', required: false, description: 'Filter orders from this date (ISO string)' })
-  @ApiQuery({ name: 'endDate', required: false, description: 'Filter orders until this date (ISO string)' })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: 'Filter orders from this date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'Filter orders until this date (ISO string)',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async getOrders(
@@ -141,12 +159,25 @@ export class SalesController {
   @Permissions('pos.read')
   @ApiOperation({
     summary: 'Get sales summary for a period',
-    description: 'Returns aggregated sales data including totals, refunds, and payment breakdown.',
+    description:
+      'Returns aggregated sales data including totals, refunds, and payment breakdown.',
   })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Store ID (required for owners)' })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Store ID (required for owners)',
+  })
   @ApiQuery({ name: 'branchId', required: false })
-  @ApiQuery({ name: 'startDate', required: true, description: 'Start date (ISO string)' })
-  @ApiQuery({ name: 'endDate', required: true, description: 'End date (ISO string)' })
+  @ApiQuery({
+    name: 'startDate',
+    required: true,
+    description: 'Start date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: true,
+    description: 'End date (ISO string)',
+  })
   async getSalesSummary(
     @CurrentUser() user: CurrentUserData,
     @Query('storeId') storeId?: string,

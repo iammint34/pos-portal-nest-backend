@@ -16,6 +16,8 @@ import { AuditModule } from './audit/audit.module';
 import { SalesModule } from './sales/sales.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { ReportsModule } from './reports/reports.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { AlertsModule } from './alerts/alerts.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { PosDeviceGuard } from './common/guards';
 
@@ -38,6 +40,8 @@ import { PosDeviceGuard } from './common/guards';
     SalesModule,
     ShiftsModule,
     ReportsModule,
+    InventoryModule,
+    AlertsModule,
   ],
   controllers: [AppController],
   providers: [

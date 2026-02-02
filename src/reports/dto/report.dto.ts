@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString, IsInt, Min, IsEnum } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsInt, Min, IsEnum, IsNumber } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export enum ExportFormat {
@@ -246,6 +246,34 @@ export class ZReadingReportDto {
   @ApiProperty() transactionCount: number;
 }
 
+export class StaffSalesDto {
+  @ApiProperty() operatorId: string;
+  @ApiProperty() operatorName: string;
+  @ApiProperty() orderCount: number;
+  @ApiProperty() grossSales: number;
+  @ApiProperty() discounts: number;
+  @ApiProperty() netSales: number;
+  @ApiProperty() averageOrderValue: number;
+  @ApiProperty() percentage: number;
+}
+
+export class StaffPerformanceDto {
+  @ApiProperty() operatorId: string;
+  @ApiProperty() operatorName: string;
+  @ApiProperty() orderCount: number;
+  @ApiProperty() totalSales: number;
+  @ApiProperty() averageOrderValue: number;
+  @ApiProperty() voidCount: number;
+  @ApiProperty() voidAmount: number;
+  @ApiProperty() refundCount: number;
+  @ApiProperty() refundAmount: number;
+  @ApiProperty() discountCount: number;
+  @ApiProperty() discountAmount: number;
+  @ApiProperty() shiftCount: number;
+  @ApiProperty() totalShiftHours: number;
+  @ApiProperty() cashVariance: number;
+}
+
 export class TopSellingItemDto {
   @ApiProperty() itemId: string;
   @ApiProperty() itemName: string;
@@ -283,24 +311,83 @@ export class PaginatedResponseDto<T> {
 
 // Sync Z-Reading DTO (from POS Device)
 export class SyncZReadingDto {
-  @ApiProperty() posZReadingId: string;
-  @ApiProperty() zCounterNo: number;
-  @ApiProperty() beginningInvoiceNo: string;
-  @ApiProperty() endingInvoiceNo: string;
-  @ApiProperty() beginningGrandTotal: number;
-  @ApiProperty() endingGrandTotal: number;
-  @ApiProperty() grossSales: number;
-  @ApiProperty() netSales: number;
-  @ApiProperty() vatableSales: number;
-  @ApiProperty() vatAmount: number;
-  @ApiProperty() vatExemptSales: number;
-  @ApiProperty() zeroRatedSales: number;
-  @ApiProperty() discountTotal: number;
-  @ApiProperty() refundTotal: number;
-  @ApiProperty() voidTotal: number;
-  @ApiProperty() transactionCount: number;
-  @ApiProperty() voidCount: number;
-  @ApiProperty() refundCount: number;
-  @ApiProperty() closedBy: string;
-  @ApiProperty() closedAt: string;
+  @ApiProperty()
+  @IsString()
+  posZReadingId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  zCounterNo: number;
+
+  @ApiProperty()
+  @IsString()
+  beginningInvoiceNo: string;
+
+  @ApiProperty()
+  @IsString()
+  endingInvoiceNo: string;
+
+  @ApiProperty()
+  @IsNumber()
+  beginningGrandTotal: number;
+
+  @ApiProperty()
+  @IsNumber()
+  endingGrandTotal: number;
+
+  @ApiProperty()
+  @IsNumber()
+  grossSales: number;
+
+  @ApiProperty()
+  @IsNumber()
+  netSales: number;
+
+  @ApiProperty()
+  @IsNumber()
+  vatableSales: number;
+
+  @ApiProperty()
+  @IsNumber()
+  vatAmount: number;
+
+  @ApiProperty()
+  @IsNumber()
+  vatExemptSales: number;
+
+  @ApiProperty()
+  @IsNumber()
+  zeroRatedSales: number;
+
+  @ApiProperty()
+  @IsNumber()
+  discountTotal: number;
+
+  @ApiProperty()
+  @IsNumber()
+  refundTotal: number;
+
+  @ApiProperty()
+  @IsNumber()
+  voidTotal: number;
+
+  @ApiProperty()
+  @IsInt()
+  transactionCount: number;
+
+  @ApiProperty()
+  @IsInt()
+  voidCount: number;
+
+  @ApiProperty()
+  @IsInt()
+  refundCount: number;
+
+  @ApiProperty()
+  @IsString()
+  closedBy: string;
+
+  @ApiProperty()
+  @IsString()
+  closedAt: string;
 }

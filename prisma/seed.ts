@@ -42,6 +42,31 @@ const permissions = [
 
   // Audit permissions
   { code: 'audit.read', name: 'View Audit Logs', module: 'audit', description: 'Permission to view audit logs' },
+
+  // Inventory permissions
+  { code: 'inventory.create', name: 'Create Inventory', module: 'inventory', description: 'Permission to create inventory tracking' },
+  { code: 'inventory.read', name: 'View Inventory', module: 'inventory', description: 'Permission to view inventory' },
+  { code: 'inventory.update', name: 'Update Inventory', module: 'inventory', description: 'Permission to update inventory settings' },
+  { code: 'inventory.receive', name: 'Receive Stock', module: 'inventory', description: 'Permission to receive stock' },
+  { code: 'inventory.adjust', name: 'Adjust Inventory', module: 'inventory', description: 'Permission to adjust inventory (up, down, wastage)' },
+
+  // Alert permissions
+  { code: 'alert.read', name: 'View Alerts', module: 'alert', description: 'Permission to view alerts and notifications' },
+  { code: 'alert.acknowledge', name: 'Acknowledge Alerts', module: 'alert', description: 'Permission to acknowledge alerts' },
+  { code: 'alert.dismiss', name: 'Dismiss Alerts', module: 'alert', description: 'Permission to dismiss alerts' },
+  { code: 'alert.config', name: 'Configure Alerts', module: 'alert', description: 'Permission to configure alert thresholds and settings' },
+
+  // POS Function permissions (synced to POS devices for fine-grained feature gating)
+  { code: 'pos_function.void_order', name: 'Void Order', module: 'pos_function', description: 'Permission to void an entire order on POS' },
+  { code: 'pos_function.apply_discount', name: 'Apply Discount', module: 'pos_function', description: 'Permission to apply discounts to orders/items on POS' },
+  { code: 'pos_function.process_refund', name: 'Process Refund', module: 'pos_function', description: 'Permission to process refunds on POS' },
+  { code: 'pos_function.open_cash_drawer', name: 'Open Cash Drawer', module: 'pos_function', description: 'Permission for cash in/out, paid out, and cash drop on POS' },
+  { code: 'pos_function.close_shift', name: 'Close Shift', module: 'pos_function', description: 'Permission to close a shift on POS' },
+  { code: 'pos_function.view_reports', name: 'View Reports', module: 'pos_function', description: 'Permission to access reports on POS (except Z-Reading)' },
+  { code: 'pos_function.generate_z_reading', name: 'Generate Z-Reading', module: 'pos_function', description: 'Permission to close day and generate Z-Reading on POS' },
+  { code: 'pos_function.export_reports', name: 'Export Reports', module: 'pos_function', description: 'Permission to export reports to CSV on POS' },
+  { code: 'pos_function.manage_device', name: 'Manage Device', module: 'pos_function', description: 'Permission to unregister device and configure printer/display on POS' },
+  { code: 'pos_function.view_orders_history', name: 'View Orders History', module: 'pos_function', description: 'Permission to view past orders and reprint receipts on POS' },
 ];
 
 async function main() {

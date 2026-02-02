@@ -33,6 +33,7 @@ export class ShiftsService {
           where: { id: existingShift.id },
           data: {
             status: dto.status as ShiftStatus,
+            operatorId: dto.posOperatorId,
             closedAt: dto.closedAt ? new Date(dto.closedAt) : null,
             closingCash: dto.closingCash,
             expectedCash: dto.expectedCash,
@@ -78,6 +79,7 @@ export class ShiftsService {
           branchId,
           storeId,
           posOperatorId: dto.posOperatorId,
+          operatorId: dto.posOperatorId,
           status: dto.status as ShiftStatus,
           openedAt: new Date(dto.openedAt),
           closedAt: dto.closedAt ? new Date(dto.closedAt) : null,

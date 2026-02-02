@@ -8,7 +8,7 @@ import {
   BadRequestException,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { FastifyReply } from 'fastify';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
 import { Permissions, CurrentUser, CurrentUserData, PosDevice, CurrentPosDevice } from '../common/decorators';
@@ -61,7 +61,7 @@ export class ReportsController {
   async exportSalesSummary(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ExportQueryDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
@@ -90,12 +90,12 @@ export class ReportsController {
         { key: 'averageOrderValue', header: 'Average Order Value' },
       ]);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=sales-summary-${dto.startDate || 'all'}.csv`);
+      res.header('Content-Type', 'text/csv');
+      res.header('Content-Disposition', `attachment; filename=sales-summary-${dto.startDate || 'all'}.csv`);
       return res.send(csv);
     }
 
-    return res.json(data);
+    return res.send(data);
   }
 
   // ==================== SALES BY BRANCH ====================
@@ -118,7 +118,7 @@ export class ReportsController {
   async exportSalesByBranch(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ExportQueryDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
@@ -136,12 +136,12 @@ export class ReportsController {
         { key: 'percentage', header: 'Percentage (%)' },
       ]);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=sales-by-branch-${dto.startDate || 'all'}.csv`);
+      res.header('Content-Type', 'text/csv');
+      res.header('Content-Disposition', `attachment; filename=sales-by-branch-${dto.startDate || 'all'}.csv`);
       return res.send(csv);
     }
 
-    return res.json(data);
+    return res.send(data);
   }
 
   // ==================== SALES BY DEVICE ====================
@@ -178,7 +178,7 @@ export class ReportsController {
   async exportSalesByCategory(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ExportQueryDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
@@ -196,12 +196,12 @@ export class ReportsController {
         { key: 'percentage', header: 'Percentage (%)' },
       ]);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=sales-by-category-${dto.startDate || 'all'}.csv`);
+      res.header('Content-Type', 'text/csv');
+      res.header('Content-Disposition', `attachment; filename=sales-by-category-${dto.startDate || 'all'}.csv`);
       return res.send(csv);
     }
 
-    return res.json(data);
+    return res.send(data);
   }
 
   // ==================== SALES BY ITEM ====================
@@ -224,7 +224,7 @@ export class ReportsController {
   async exportSalesByItem(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ExportQueryDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
@@ -243,12 +243,12 @@ export class ReportsController {
         { key: 'averagePrice', header: 'Average Price' },
       ]);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=sales-by-item-${dto.startDate || 'all'}.csv`);
+      res.header('Content-Type', 'text/csv');
+      res.header('Content-Disposition', `attachment; filename=sales-by-item-${dto.startDate || 'all'}.csv`);
       return res.send(csv);
     }
 
-    return res.json(result);
+    return res.send(result);
   }
 
   // ==================== TOP SELLING ITEMS ====================
@@ -265,6 +265,66 @@ export class ReportsController {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
     return this.reportsService.getTopSellingItems(effectiveStoreId, dto, top || 10);
+  }
+
+  // ==================== SALES BY STAFF ====================
+
+  @Get('sales/by-staff')
+  @Permissions('pos.read')
+  @ApiOperation({ summary: 'Get sales breakdown by staff member' })
+  async getSalesByStaff(
+    @CurrentUser() user: CurrentUserData,
+    @Query() dto: ReportQueryDto,
+  ) {
+    const effectiveStoreId = user?.storeId || dto.storeId;
+    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    return this.reportsService.getSalesByStaff(effectiveStoreId, dto);
+  }
+
+  @Get('sales/by-staff/export')
+  @Permissions('pos.read')
+  @ApiOperation({ summary: 'Export sales by staff to CSV' })
+  async exportSalesByStaff(
+    @CurrentUser() user: CurrentUserData,
+    @Query() dto: ExportQueryDto,
+    @Res() res: FastifyReply,
+  ) {
+    const effectiveStoreId = user?.storeId || dto.storeId;
+    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+
+    const data = await this.reportsService.getSalesByStaff(effectiveStoreId, dto);
+
+    if (dto.format === ExportFormat.CSV) {
+      const csv = this.reportsService.exportToCsv(data, [
+        { key: 'operatorName', header: 'Staff Name' },
+        { key: 'orderCount', header: 'Orders' },
+        { key: 'grossSales', header: 'Gross Sales' },
+        { key: 'discounts', header: 'Discounts' },
+        { key: 'netSales', header: 'Net Sales' },
+        { key: 'averageOrderValue', header: 'Avg Order Value' },
+        { key: 'percentage', header: 'Percentage (%)' },
+      ]);
+
+      res.header('Content-Type', 'text/csv');
+      res.header('Content-Disposition', `attachment; filename=sales-by-staff-${dto.startDate || 'all'}.csv`);
+      return res.send(csv);
+    }
+
+    return res.send(data);
+  }
+
+  // ==================== STAFF PERFORMANCE ====================
+
+  @Get('staff/performance')
+  @Permissions('pos.read')
+  @ApiOperation({ summary: 'Get comprehensive staff performance metrics' })
+  async getStaffPerformance(
+    @CurrentUser() user: CurrentUserData,
+    @Query() dto: ReportQueryDto,
+  ) {
+    const effectiveStoreId = user?.storeId || dto.storeId;
+    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    return this.reportsService.getStaffPerformance(effectiveStoreId, dto);
   }
 
   // ==================== SALES BY PAYMENT METHOD ====================
@@ -329,7 +389,7 @@ export class ReportsController {
   async exportTransactions(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ExportQueryDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
@@ -354,12 +414,12 @@ export class ReportsController {
         { key: 'deviceName', header: 'Device' },
       ]);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=transactions-${dto.startDate || 'all'}.csv`);
+      res.header('Content-Type', 'text/csv');
+      res.header('Content-Disposition', `attachment; filename=transactions-${dto.startDate || 'all'}.csv`);
       return res.send(csv);
     }
 
-    return res.json(result);
+    return res.send(result);
   }
 
   // ==================== VOIDS ====================
@@ -434,45 +494,23 @@ export class ReportsController {
 
   @Get('z-readings/export')
   @Permissions('pos.read')
-  @ApiOperation({ summary: 'Export Z-Readings to CSV' })
+  @ApiOperation({ summary: 'Export Z-Readings to text format' })
   async exportZReadings(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ExportQueryDto,
-    @Res() res: Response,
+    @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
 
-    const result = await this.reportsService.getZReadingHistory(effectiveStoreId, { ...dto, limit: 1000 });
+    const result = await this.reportsService.getZReadingsForExport(effectiveStoreId, { ...dto, limit: 1000 });
 
-    if (dto.format === ExportFormat.CSV) {
-      const csv = this.reportsService.exportToCsv(result.data, [
-        { key: 'zCounterNo', header: 'Z Counter' },
-        { key: 'readingDate', header: 'Date' },
-        { key: 'branchName', header: 'Branch' },
-        { key: 'deviceName', header: 'Device' },
-        { key: 'beginningInvoice', header: 'Beginning Invoice' },
-        { key: 'endingInvoice', header: 'Ending Invoice' },
-        { key: 'transactionCount', header: 'Transactions' },
-        { key: 'grossSales', header: 'Gross Sales' },
-        { key: 'totalDiscounts', header: 'Discounts' },
-        { key: 'totalRefunds', header: 'Refunds' },
-        { key: 'totalVoids', header: 'Voids' },
-        { key: 'netSales', header: 'Net Sales' },
-        { key: 'vatableSales', header: 'VATable Sales' },
-        { key: 'vatAmount', header: 'VAT Amount' },
-        { key: 'vatExemptSales', header: 'VAT Exempt' },
-        { key: 'zeroRatedSales', header: 'Zero Rated' },
-        { key: 'openingGrandTotal', header: 'Opening GT' },
-        { key: 'closingGrandTotal', header: 'Closing GT' },
-      ]);
+    // Generate BIR-compliant Z-Reading report text
+    const report = this.reportsService.generateZReadingReport(result.data, result.storeInfo, result.branchInfo);
 
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=z-readings-${dto.startDate || 'all'}.csv`);
-      return res.send(csv);
-    }
-
-    return res.json(result);
+    res.header('Content-Type', 'text/plain; charset=utf-8');
+    res.header('Content-Disposition', `attachment; filename=z-reading-report-${dto.startDate || 'all'}.txt`);
+    return res.send(report);
   }
 
   // ==================== Z-READING SYNC (POS Device) ====================

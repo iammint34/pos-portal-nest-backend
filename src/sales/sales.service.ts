@@ -56,6 +56,7 @@ export class SalesService {
             posDeviceId,
             branchId,
             storeId,
+            operatorId: orderDto.operatorId,
             orderNumber: orderDto.orderNumber,
             orderType: orderDto.orderType || 'DINE_IN',
             status: orderDto.status || 'COMPLETED',
@@ -72,7 +73,9 @@ export class SalesService {
             customerPhone: orderDto.customerPhone,
             notes: orderDto.notes,
             posCreatedAt: new Date(orderDto.posCreatedAt),
-            posClosedAt: orderDto.posClosedAt ? new Date(orderDto.posClosedAt) : null,
+            posClosedAt: orderDto.posClosedAt
+              ? new Date(orderDto.posClosedAt)
+              : null,
             syncBatchId,
           },
         });
@@ -107,7 +110,8 @@ export class SalesService {
         // Create discounts
         if (orderDto.discounts && orderDto.discounts.length > 0) {
           for (const discount of orderDto.discounts) {
-            const orderItemId = discount.discountScope === DiscountScope.ITEM &&
+            const orderItemId =
+              discount.discountScope === DiscountScope.ITEM &&
               discount.orderItemIndex !== undefined
                 ? orderItemsMap.get(discount.orderItemIndex)
                 : null;
@@ -215,9 +219,9 @@ export class SalesService {
       results.push(result);
     }
 
-    const successful = results.filter(r => r.success && r.isNew).length;
-    const skipped = results.filter(r => r.success && !r.isNew).length;
-    const failed = results.filter(r => !r.success).length;
+    const successful = results.filter((r) => r.success && r.isNew).length;
+    const skipped = results.filter((r) => r.success && !r.isNew).length;
+    const failed = results.filter((r) => !r.success).length;
 
     return {
       syncBatchId,
@@ -246,7 +250,9 @@ export class SalesService {
     });
 
     if (!order) {
-      throw new NotFoundException(`Order with posOrderId ${voidDto.posOrderId} not found`);
+      throw new NotFoundException(
+        `Order with posOrderId ${voidDto.posOrderId} not found`,
+      );
     }
 
     if (order.status === 'VOIDED') {
@@ -281,7 +287,15 @@ export class SalesService {
       limit?: number;
     } = {},
   ) {
-    const { branchId, posDeviceId, status, startDate, endDate, page = 1, limit = 20 } = options;
+    const {
+      branchId,
+      posDeviceId,
+      status,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20,
+    } = options;
 
     const where = {
       ...(storeId && { storeId }),
@@ -405,7 +419,7 @@ export class SalesService {
         lte: endDate,
       },
       status: {
-        notIn: ['VOIDED'] as ('VOIDED')[],
+        notIn: ['VOIDED'] as 'VOIDED'[],
       },
     };
 
@@ -436,16 +450,19 @@ export class SalesService {
     });
 
     // Manually group payments by method
-    const paymentsByMethod = payments.reduce((acc, payment) => {
-      const method = payment.paymentMethod;
-      if (!acc[method]) {
-        acc[method] = { count: 0, amount: 0, tips: 0 };
-      }
-      acc[method].count += 1;
-      acc[method].amount += Number(payment.amount);
-      acc[method].tips += Number(payment.tipAmount);
-      return acc;
-    }, {} as Record<string, { count: number; amount: number; tips: number }>);
+    const paymentsByMethod = payments.reduce(
+      (acc, payment) => {
+        const method = payment.paymentMethod;
+        if (!acc[method]) {
+          acc[method] = { count: 0, amount: 0, tips: 0 };
+        }
+        acc[method].count += 1;
+        acc[method].amount += Number(payment.amount);
+        acc[method].tips += Number(payment.tipAmount);
+        return acc;
+      },
+      {} as Record<string, { count: number; amount: number; tips: number }>,
+    );
 
     const refundTotal = await this.prisma.refund.aggregate({
       where: {
@@ -471,13 +488,17 @@ export class SalesService {
       refunds: {
         total: Number(refundTotal._sum.amount) || 0,
       },
-      netSales: (Number(summary._sum.grandTotal) || 0) - (Number(refundTotal._sum.amount) || 0),
-      paymentsByMethod: Object.entries(paymentsByMethod).map(([method, data]) => ({
-        method,
-        count: data.count,
-        amount: data.amount,
-        tips: data.tips,
-      })),
+      netSales:
+        (Number(summary._sum.grandTotal) || 0) -
+        (Number(refundTotal._sum.amount) || 0),
+      paymentsByMethod: Object.entries(paymentsByMethod).map(
+        ([method, data]) => ({
+          method,
+          count: data.count,
+          amount: data.amount,
+          tips: data.tips,
+        }),
+      ),
     };
   }
 }

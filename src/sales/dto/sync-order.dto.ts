@@ -253,6 +253,11 @@ export class SyncOrderDto {
   @IsNotEmpty()
   orderNumber: string;
 
+  @ApiPropertyOptional({ description: 'Portal user ID of the operator who created the order' })
+  @IsOptional()
+  @IsString()
+  operatorId?: string;
+
   @ApiPropertyOptional({ enum: OrderType, description: 'Type of order', default: 'DINE_IN' })
   @IsOptional()
   @IsEnum(OrderType)

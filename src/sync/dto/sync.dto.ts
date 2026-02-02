@@ -63,6 +63,7 @@ export class SyncUserDto {
   role: 'MANAGER' | 'STAFF';
   pin?: string;
   isActive: boolean;
+  permissions?: string[];
 }
 
 // Category sync data

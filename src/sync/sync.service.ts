@@ -243,6 +243,7 @@ export class SyncService {
     let users: SyncUserDto[] | null = null;
     let categories: SyncCategoryDto[] | null = null;
     let items: SyncItemDto[] | null = null;
+    let inventory: Array<{ id: string; itemId: string; currentQuantity: number; lowStockThreshold: number | null; isTracked: boolean }> | null = null;
     let deletedUsers: DeletedRecordDto[] | null = null;
     let deletedCategories: DeletedRecordDto[] | null = null;
     let deletedItems: DeletedRecordDto[] | null = null;
@@ -291,6 +292,11 @@ export class SyncService {
             rp.permission.code.includes('discount'),
         );
 
+        // Collect POS-specific permission codes for fine-grained feature gating
+        const permissionCodes = su.role?.rolePermissions
+          ?.map((rp) => rp.permission.code)
+          .filter((code) => code.startsWith('pos_function.')) ?? [];
+
         return {
           id: su.user.id,
           email: su.user.email,
@@ -300,6 +306,7 @@ export class SyncService {
           role: hasManagerPermissions ? 'MANAGER' : 'STAFF',
           pin: undefined, // PIN not stored in Portal - set on POS device
           isActive: su.isActive,
+          permissions: permissionCodes.length > 0 ? permissionCodes : undefined,
         } as SyncUserDto;
       });
 
@@ -466,6 +473,19 @@ export class SyncService {
           deletedAt: i.deletedAt || i.updatedAt,
         }));
       }
+
+      // Get inventory for this branch
+      const branchInventory = await this.prisma.branchInventory.findMany({
+        where: { branchId, storeId },
+        select: {
+          id: true,
+          itemId: true,
+          currentQuantity: true,
+          lowStockThreshold: true,
+          isTracked: true,
+        },
+      });
+      inventory = branchInventory;
     }
 
     return {
@@ -473,6 +493,7 @@ export class SyncService {
       users,
       categories,
       items,
+      inventory: inventory?.length ? inventory : undefined,
       deletedUsers: deletedUsers?.length ? deletedUsers : undefined,
       deletedCategories: deletedCategories?.length
         ? deletedCategories

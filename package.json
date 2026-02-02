@@ -23,7 +23,7 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "prisma:seed:demo": "cross-env CREATE_DEMO_DATA=true ts-node prisma/seed.ts",
+    "prisma:seed:demo": "ts-node prisma/seed-demo.ts",
     "db:reset": "prisma migrate reset --force"
   },
   "prisma": {
@@ -37,6 +37,7 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-fastify": "^11.0.0",
+    "@nestjs/schedule": "^6.1.0",
     "@nestjs/swagger": "^11.0.0",
     "@prisma/client": "^6.0.0",
     "bcrypt": "^5.1.1",

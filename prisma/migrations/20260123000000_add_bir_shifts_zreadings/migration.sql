@@ -6,8 +6,8 @@ ALTER TABLE `stores` ADD COLUMN `is_vat_registered` BOOLEAN NOT NULL DEFAULT tru
 
 -- Add BIR fields to branches table
 ALTER TABLE `branches` ADD COLUMN `ptu_no` VARCHAR(50) NULL;
-ALTER TABLE `branches` ADD COLUMN `ptu_date_issued` VARCHAR(50) NULL;
-ALTER TABLE `branches` ADD COLUMN `ptu_valid_until` VARCHAR(50) NULL;
+ALTER TABLE `branches` ADD COLUMN `ptu_date_issued` DATETIME(3) NULL;
+ALTER TABLE `branches` ADD COLUMN `ptu_valid_until` DATETIME(3) NULL;
 ALTER TABLE `branches` ADD COLUMN `accreditation_no` VARCHAR(50) NULL;
 
 -- Add BIR fields to pos_devices table
@@ -155,3 +155,57 @@ ALTER TABLE `shifts` ADD CONSTRAINT `shifts_pos_operator_id_fkey` FOREIGN KEY (`
 ALTER TABLE `cash_movements` ADD CONSTRAINT `cash_movements_shift_id_fkey` FOREIGN KEY (`shift_id`) REFERENCES `shifts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `z_readings` ADD CONSTRAINT `z_readings_pos_device_id_fkey` FOREIGN KEY (`pos_device_id`) REFERENCES `pos_devices`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Create branch_inventory table
+CREATE TABLE `branch_inventory` (
+    `id` VARCHAR(191) NOT NULL,
+    `item_id` VARCHAR(191) NOT NULL,
+    `branch_id` VARCHAR(191) NOT NULL,
+    `store_id` VARCHAR(191) NOT NULL,
+    `current_quantity` INTEGER NOT NULL DEFAULT 0,
+    `low_stock_threshold` INTEGER NULL,
+    `is_tracked` BOOLEAN NOT NULL DEFAULT true,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `branch_inventory_item_id_branch_id_key`(`item_id`, `branch_id`),
+    INDEX `branch_inventory_branch_id_idx`(`branch_id`),
+    INDEX `branch_inventory_store_id_idx`(`store_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Create inventory_movements table
+CREATE TABLE `inventory_movements` (
+    `id` VARCHAR(191) NOT NULL,
+    `movement_id` VARCHAR(191) NOT NULL,
+    `branch_inventory_id` VARCHAR(191) NOT NULL,
+    `item_id` VARCHAR(191) NOT NULL,
+    `branch_id` VARCHAR(191) NOT NULL,
+    `store_id` VARCHAR(191) NOT NULL,
+    `movement_type` ENUM('RECEIVED', 'SOLD', 'ADJUSTED_UP', 'ADJUSTED_DOWN', 'WASTED', 'VOIDED_SALE', 'REFUNDED', 'TRANSFER_IN', 'TRANSFER_OUT') NOT NULL,
+    `quantity` INTEGER NOT NULL,
+    `previous_quantity` INTEGER NOT NULL,
+    `new_quantity` INTEGER NOT NULL,
+    `reference_type` VARCHAR(191) NULL,
+    `reference_id` VARCHAR(191) NULL,
+    `pos_device_id` VARCHAR(191) NULL,
+    `reason` TEXT NULL,
+    `performed_by` VARCHAR(191) NULL,
+    `performed_at` DATETIME(3) NOT NULL,
+    `synced_at` DATETIME(3) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `inventory_movements_movement_id_key`(`movement_id`),
+    INDEX `inventory_movements_branch_inventory_id_idx`(`branch_inventory_id`),
+    INDEX `inventory_movements_item_id_idx`(`item_id`),
+    INDEX `inventory_movements_branch_id_idx`(`branch_id`),
+    INDEX `inventory_movements_movement_type_idx`(`movement_type`),
+    INDEX `inventory_movements_performed_at_idx`(`performed_at`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Add foreign keys for inventory
+ALTER TABLE `branch_inventory` ADD CONSTRAINT `branch_inventory_item_id_fkey` FOREIGN KEY (`item_id`) REFERENCES `items`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `branch_inventory` ADD CONSTRAINT `branch_inventory_branch_id_fkey` FOREIGN KEY (`branch_id`) REFERENCES `branches`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `inventory_movements` ADD CONSTRAINT `inventory_movements_branch_inventory_id_fkey` FOREIGN KEY (`branch_inventory_id`) REFERENCES `branch_inventory`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

@@ -20,6 +20,8 @@ import {
   TopSellingItemDto,
   DashboardStatsDto,
   SyncZReadingDto,
+  StaffSalesDto,
+  StaffPerformanceDto,
 } from './dto';
 
 @Injectable()
@@ -1144,6 +1146,430 @@ export class ReportsService {
       posZReadingId: dto.posZReadingId,
       portalZReadingId: zReading.id,
     };
+  }
+
+  /**
+   * Get Z-Readings with store/branch info for export
+   */
+  async getZReadingsForExport(storeId: string, dto: ReportQueryDto) {
+    const { start, end } = this.getDateRange(dto);
+
+    // Build where clause
+    const whereClause: any = {
+      storeId,
+      closedAt: { gte: start, lte: end },
+    };
+    if (dto.branchId) {
+      whereClause.branchId = dto.branchId;
+    }
+    if (dto.posDeviceId) {
+      whereClause.posDeviceId = dto.posDeviceId;
+    }
+
+    const [zReadings, store] = await Promise.all([
+      this.prisma.zReading.findMany({
+        where: whereClause,
+        include: {
+          posDevice: {
+            select: {
+              name: true,
+              deviceIdentifier: true,
+              min: true,
+              serialNumber: true,
+              branch: {
+                select: {
+                  name: true,
+                  address: true,
+                  ptuNo: true,
+                  ptuDateIssued: true,
+                  ptuValidUntil: true,
+                  accreditationNo: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { closedAt: 'desc' },
+      }),
+      this.prisma.store.findUnique({
+        where: { id: storeId },
+        select: {
+          name: true,
+          registeredName: true,
+          registeredAddress: true,
+          vatTin: true,
+          isVatRegistered: true,
+        },
+      }),
+    ]);
+
+    // Get branch info if branchId is specified
+    let branchInfo = null;
+    if (dto.branchId) {
+      branchInfo = await this.prisma.branch.findUnique({
+        where: { id: dto.branchId },
+        select: {
+          name: true,
+          address: true,
+          ptuNo: true,
+          ptuDateIssued: true,
+          ptuValidUntil: true,
+          accreditationNo: true,
+        },
+      });
+    }
+
+    // Get user names for closedBy IDs
+    const userIds = [...new Set(zReadings.map(z => z.closedBy).filter(id => id && id !== 'system'))];
+    const users = userIds.length > 0 ? await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, firstName: true, lastName: true },
+    }) : [];
+    const userMap = new Map(users.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+
+    // Attach user names to z-readings
+    const zReadingsWithUsers = zReadings.map(z => {
+      if (z.closedBy === 'system') {
+        return { ...z, closedByName: 'SYSTEM' };
+      }
+      const userName = userMap.get(z.closedBy);
+      const shortId = z.closedBy.substring(0, 8).toUpperCase();
+      return {
+        ...z,
+        closedByName: userName ? `${userName.toUpperCase()} (${shortId})` : z.closedBy,
+      };
+    });
+
+    return {
+      data: zReadingsWithUsers,
+      storeInfo: store,
+      branchInfo,
+    };
+  }
+
+  /**
+   * Generate BIR-compliant Z-Reading report text
+   */
+  generateZReadingReport(
+    zReadings: any[],
+    storeInfo: any,
+    branchInfo: any,
+  ): string {
+    if (!zReadings || zReadings.length === 0) {
+      return 'No Z-Readings found for the selected period.';
+    }
+
+    const formatMoney = (amount: number | null | undefined) => {
+      const num = Number(amount) || 0;
+      return num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+    const formatDate = (date: Date | string | null) => {
+      if (!date) return 'N/A';
+      return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+    const formatTime = (date: Date | string | null) => {
+      if (!date) return 'N/A';
+      return new Date(date).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    };
+    const padNum = (num: string, len: number) => num.padStart(len);
+
+    let report = '';
+
+    for (const z of zReadings) {
+      const device = z.posDevice || {};
+      const branch = device?.branch || branchInfo || {};
+
+      report += '================================================================\n';
+      report += '                      Z - R E A D I N G\n';
+      report += '              ( End of Day Sales Summary Report )\n';
+      report += '================================================================\n\n';
+
+      report += '----------------------------------------------------------------\n';
+      report += '                    BUSINESS INFORMATION\n';
+      report += '----------------------------------------------------------------\n';
+      report += `Business Name      : ${storeInfo?.registeredName || storeInfo?.name || 'N/A'}\n`;
+      report += `Address            : ${storeInfo?.registeredAddress || branch?.address || 'N/A'}\n`;
+      report += `TIN                : ${storeInfo?.vatTin || 'N/A'}\n`;
+      report += `Accreditation No.  : ${branch?.accreditationNo || 'N/A'}\n`;
+      report += `PTU No.            : ${branch?.ptuNo || 'N/A'}\n`;
+      report += `MIN                : ${device?.min || 'N/A'}\n`;
+      report += `Serial No.         : ${device?.serialNumber || 'N/A'}\n\n`;
+
+      report += '================================================================\n';
+      report += '                    REPORT INFORMATION\n';
+      report += '----------------------------------------------------------------\n';
+      report += `Z-Reading No.      : ${String(z.zCounterNo).padStart(9, '0')}\n`;
+      report += `Report Date        : ${formatDate(z.closedAt)}\n`;
+      report += `Report Time        : ${formatTime(z.closedAt)}\n`;
+      report += `Cashier/User       : ${z.closedByName || z.closedBy || 'SYSTEM'}\n`;
+      report += `Branch             : ${branch?.name || 'N/A'}\n`;
+      report += `Device             : ${device?.name || device?.deviceIdentifier || 'N/A'}\n`;
+      report += '================================================================\n\n';
+
+      report += '----------------------------------------------------------------\n';
+      report += '                  TRANSACTION SUMMARY\n';
+      report += '----------------------------------------------------------------\n';
+      report += `Beginning OR No.   : ${z.beginningInvoiceNo}\n`;
+      report += `Ending OR No.      : ${z.endingInvoiceNo}\n`;
+      report += `Total Transactions : ${padNum(String(z.transactionCount), 10)}\n`;
+      report += `Void Count         : ${padNum(String(z.voidCount), 10)}\n`;
+      report += `Refund Count       : ${padNum(String(z.refundCount), 10)}\n\n`;
+
+      report += '================================================================\n';
+      report += '                    SALES BREAKDOWN\n';
+      report += '================================================================\n';
+      report += '                                                    AMOUNT (PHP)\n';
+      report += '----------------------------------------------------------------\n';
+      report += `GROSS SALES                                     ${padNum(formatMoney(Number(z.grossSales)), 15)}\n\n`;
+
+      report += `  VATable Sales                                 ${padNum(formatMoney(Number(z.vatableSales)), 15)}\n`;
+      report += `  VAT Amount (12%)                              ${padNum(formatMoney(Number(z.vatAmount)), 15)}\n`;
+      report += `  VAT-Exempt Sales                              ${padNum(formatMoney(Number(z.vatExemptSales)), 15)}\n`;
+      report += `  Zero-Rated Sales                              ${padNum(formatMoney(Number(z.zeroRatedSales)), 15)}\n\n`;
+
+      report += '----------------------------------------------------------------\n';
+      report += '                      DEDUCTIONS\n';
+      report += '----------------------------------------------------------------\n';
+      report += `  Refunds                                       ${padNum(formatMoney(Number(z.refundTotal)), 15)}\n`;
+      report += `  Voids                                         ${padNum(formatMoney(Number(z.voidTotal)), 15)}\n`;
+      report += `  Discounts                                     ${padNum(formatMoney(Number(z.discountTotal)), 15)}\n`;
+      report += '                                                ---------------\n';
+      const totalDeductions = Number(z.refundTotal) + Number(z.voidTotal) + Number(z.discountTotal);
+      report += `TOTAL DEDUCTIONS                                ${padNum(formatMoney(totalDeductions), 15)}\n\n`;
+
+      report += '================================================================\n';
+      report += `NET SALES                                       ${padNum(formatMoney(Number(z.netSales)), 15)}\n`;
+      report += '================================================================\n\n';
+
+      report += '----------------------------------------------------------------\n';
+      report += '                 ACCUMULATED TOTALS\n';
+      report += '              ( Non-Resettable Counters )\n';
+      report += '================================================================\n';
+      report += `OLD GRAND TOTAL SALES                       ${padNum(formatMoney(Number(z.beginningGrandTotal)), 15)}\n`;
+      report += `Today's Net Sales                           ${padNum(formatMoney(Number(z.netSales)), 15)}\n`;
+      report += '                                            -------------------\n';
+      report += `NEW GRAND TOTAL SALES                       ${padNum(formatMoney(Number(z.endingGrandTotal)), 15)}\n\n`;
+
+      report += `Z-Counter                                             ${padNum(String(z.zCounterNo), 10)}\n\n`;
+
+      report += '================================================================\n\n';
+      report += '         THIS SERVES AS YOUR Z-READING REPORT\n';
+      report += '        THIS DOCUMENT IS SYSTEM-GENERATED AND\n';
+      report += '            DOES NOT REQUIRE A SIGNATURE\n\n';
+      report += '       *** END OF Z-READING REPORT ***\n\n';
+      report += `Generated: ${formatDate(new Date())} ${formatTime(new Date())}\n\n`;
+      report += '================================================================\n';
+      report += '     THIS REPORT IS VALID FOR BIR AUDIT PURPOSES\n';
+      report += '     RETAIN FOR A MINIMUM OF TEN (10) YEARS\n';
+      report += '================================================================\n\n\n';
+    }
+
+    return report;
+  }
+
+  /**
+   * Get sales breakdown by staff member
+   */
+  async getSalesByStaff(storeId: string, dto: ReportQueryDto): Promise<StaffSalesDto[]> {
+    const { start, end } = this.getDateRange(dto);
+    const storeFilter = this.buildStoreFilter(storeId, dto);
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        ...storeFilter,
+        status: OrderStatus.COMPLETED,
+        posCreatedAt: { gte: start, lte: end },
+        operatorId: { not: null },
+      },
+    });
+
+    // Group by operatorId
+    const staffMap = new Map<string, {
+      orderCount: number;
+      gross: number;
+      discounts: number;
+    }>();
+
+    for (const order of orders) {
+      const opId = order.operatorId!;
+      if (!staffMap.has(opId)) {
+        staffMap.set(opId, { orderCount: 0, gross: 0, discounts: 0 });
+      }
+      const staff = staffMap.get(opId)!;
+      staff.orderCount++;
+      staff.gross += Number(order.subtotal);
+      staff.discounts += Number(order.discountTotal);
+    }
+
+    // Resolve operator names in batch
+    const operatorIds = Array.from(staffMap.keys());
+    const users = operatorIds.length > 0 ? await this.prisma.user.findMany({
+      where: { id: { in: operatorIds } },
+      select: { id: true, firstName: true, lastName: true },
+    }) : [];
+    const userMap = new Map(users.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+
+    const totalNet = Array.from(staffMap.values()).reduce((sum, s) => sum + (s.gross - s.discounts), 0);
+
+    return Array.from(staffMap.entries())
+      .map(([operatorId, data]) => {
+        const netSales = data.gross - data.discounts;
+        return {
+          operatorId,
+          operatorName: userMap.get(operatorId) || 'Unknown',
+          orderCount: data.orderCount,
+          grossSales: data.gross,
+          discounts: data.discounts,
+          netSales,
+          averageOrderValue: data.orderCount > 0 ? netSales / data.orderCount : 0,
+          percentage: totalNet > 0 ? (netSales / totalNet) * 100 : 0,
+        };
+      })
+      .sort((a, b) => b.netSales - a.netSales);
+  }
+
+  /**
+   * Get comprehensive staff performance metrics
+   */
+  async getStaffPerformance(storeId: string, dto: ReportQueryDto): Promise<StaffPerformanceDto[]> {
+    const { start, end } = this.getDateRange(dto);
+    const storeFilter = this.buildStoreFilter(storeId, dto);
+
+    // Run queries in parallel
+    const [completedOrders, voidedOrders, refunds, discounts, shifts] = await Promise.all([
+      // Completed orders by operator
+      this.prisma.order.findMany({
+        where: {
+          ...storeFilter,
+          status: OrderStatus.COMPLETED,
+          posCreatedAt: { gte: start, lte: end },
+          operatorId: { not: null },
+        },
+      }),
+      // Voided orders by operator
+      this.prisma.order.findMany({
+        where: {
+          ...storeFilter,
+          status: OrderStatus.VOIDED,
+          posCreatedAt: { gte: start, lte: end },
+          operatorId: { not: null },
+        },
+      }),
+      // Refunds by processedBy
+      this.prisma.refund.findMany({
+        where: {
+          order: storeFilter,
+          processedAt: { gte: start, lte: end },
+          processedBy: { not: null },
+        },
+      }),
+      // Discounts by appliedBy
+      this.prisma.orderDiscount.findMany({
+        where: {
+          order: {
+            ...storeFilter,
+            status: OrderStatus.COMPLETED,
+            posCreatedAt: { gte: start, lte: end },
+          },
+          appliedBy: { not: null },
+        },
+      }),
+      // Shifts by operator (posOperatorId is always populated with portal user ID)
+      this.prisma.shift.findMany({
+        where: {
+          ...storeFilter,
+          openedAt: { gte: start, lte: end },
+        },
+      }),
+    ]);
+
+    // Build unified map per staff member
+    const staffMap = new Map<string, {
+      orderCount: number;
+      totalSales: number;
+      voidCount: number;
+      voidAmount: number;
+      refundCount: number;
+      refundAmount: number;
+      discountCount: number;
+      discountAmount: number;
+      shiftCount: number;
+      totalShiftMs: number;
+      cashVariance: number;
+    }>();
+
+    const ensureStaff = (id: string) => {
+      if (!staffMap.has(id)) {
+        staffMap.set(id, {
+          orderCount: 0, totalSales: 0,
+          voidCount: 0, voidAmount: 0,
+          refundCount: 0, refundAmount: 0,
+          discountCount: 0, discountAmount: 0,
+          shiftCount: 0, totalShiftMs: 0, cashVariance: 0,
+        });
+      }
+      return staffMap.get(id)!;
+    };
+
+    for (const order of completedOrders) {
+      const staff = ensureStaff(order.operatorId!);
+      staff.orderCount++;
+      staff.totalSales += Number(order.grandTotal);
+    }
+
+    for (const order of voidedOrders) {
+      const staff = ensureStaff(order.operatorId!);
+      staff.voidCount++;
+      staff.voidAmount += Number(order.grandTotal);
+    }
+
+    for (const refund of refunds) {
+      const staff = ensureStaff(refund.processedBy!);
+      staff.refundCount++;
+      staff.refundAmount += Number(refund.amount);
+    }
+
+    for (const discount of discounts) {
+      const staff = ensureStaff(discount.appliedBy!);
+      staff.discountCount++;
+      staff.discountAmount += Number(discount.discountAmount);
+    }
+
+    for (const shift of shifts) {
+      const staff = ensureStaff(shift.posOperatorId);
+      staff.shiftCount++;
+      if (shift.closedAt) {
+        staff.totalShiftMs += new Date(shift.closedAt).getTime() - new Date(shift.openedAt).getTime();
+      }
+      staff.cashVariance += Number(shift.variance || 0);
+    }
+
+    // Resolve names in batch
+    const operatorIds = Array.from(staffMap.keys());
+    const users = operatorIds.length > 0 ? await this.prisma.user.findMany({
+      where: { id: { in: operatorIds } },
+      select: { id: true, firstName: true, lastName: true },
+    }) : [];
+    const userMap = new Map(users.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+
+    return Array.from(staffMap.entries())
+      .map(([operatorId, data]) => ({
+        operatorId,
+        operatorName: userMap.get(operatorId) || 'Unknown',
+        orderCount: data.orderCount,
+        totalSales: data.totalSales,
+        averageOrderValue: data.orderCount > 0 ? data.totalSales / data.orderCount : 0,
+        voidCount: data.voidCount,
+        voidAmount: data.voidAmount,
+        refundCount: data.refundCount,
+        refundAmount: data.refundAmount,
+        discountCount: data.discountCount,
+        discountAmount: data.discountAmount,
+        shiftCount: data.shiftCount,
+        totalShiftHours: Math.round((data.totalShiftMs / (1000 * 60 * 60)) * 100) / 100,
+        cashVariance: data.cashVariance,
+      }))
+      .sort((a, b) => b.totalSales - a.totalSales);
   }
 
   /**
