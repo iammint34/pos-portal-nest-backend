@@ -63,12 +63,16 @@ export class SyncOrderItemDto {
   @IsString()
   posItemId?: string;
 
-  @ApiPropertyOptional({ description: 'Reference to Item ID in backend if exists' })
+  @ApiPropertyOptional({
+    description: 'Reference to Item ID in backend if exists',
+  })
   @IsOptional()
   @IsUUID()
   itemId?: string;
 
-  @ApiProperty({ description: 'Item name (denormalized for historical accuracy)' })
+  @ApiProperty({
+    description: 'Item name (denormalized for historical accuracy)',
+  })
   @IsString()
   @IsNotEmpty()
   itemName: string;
@@ -88,7 +92,10 @@ export class SyncOrderItemDto {
   @Min(0)
   unitPrice: number;
 
-  @ApiPropertyOptional({ description: 'Discount amount on this item', default: 0 })
+  @ApiPropertyOptional({
+    description: 'Discount amount on this item',
+    default: 0,
+  })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
@@ -100,7 +107,9 @@ export class SyncOrderItemDto {
   @Min(0)
   taxAmount?: number;
 
-  @ApiProperty({ description: 'Total price (quantity * unitPrice - discount + tax)' })
+  @ApiProperty({
+    description: 'Total price (quantity * unitPrice - discount + tax)',
+  })
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   totalPrice: number;
@@ -110,7 +119,10 @@ export class SyncOrderItemDto {
   @IsString()
   notes?: string;
 
-  @ApiPropertyOptional({ description: 'Whether this item was voided', default: false })
+  @ApiPropertyOptional({
+    description: 'Whether this item was voided',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   isVoided?: boolean;
@@ -123,7 +135,10 @@ export class SyncOrderItemDto {
 
 // ========== Order Discount DTO ==========
 export class SyncOrderDiscountDto {
-  @ApiPropertyOptional({ description: 'Index of order item this discount applies to (null for order-level)' })
+  @ApiPropertyOptional({
+    description:
+      'Index of order item this discount applies to (null for order-level)',
+  })
   @IsOptional()
   @IsNumber()
   orderItemIndex?: number;
@@ -137,7 +152,10 @@ export class SyncOrderDiscountDto {
   @IsEnum(DiscountType)
   discountType: DiscountType;
 
-  @ApiProperty({ enum: DiscountScope, description: 'Scope of discount (order or item level)' })
+  @ApiProperty({
+    enum: DiscountScope,
+    description: 'Scope of discount (order or item level)',
+  })
   @IsEnum(DiscountScope)
   discountScope: DiscountScope;
 
@@ -173,7 +191,11 @@ export class SyncPaymentDto {
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
 
-  @ApiPropertyOptional({ enum: PaymentStatus, description: 'Payment status', default: 'COMPLETED' })
+  @ApiPropertyOptional({
+    enum: PaymentStatus,
+    description: 'Payment status',
+    default: 'COMPLETED',
+  })
   @IsOptional()
   @IsEnum(PaymentStatus)
   status?: PaymentStatus;
@@ -189,13 +211,18 @@ export class SyncPaymentDto {
   @Min(0)
   tipAmount?: number;
 
-  @ApiPropertyOptional({ description: 'Change given (for cash payments)', default: 0 })
+  @ApiPropertyOptional({
+    description: 'Change given (for cash payments)',
+    default: 0,
+  })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
   changeAmount?: number;
 
-  @ApiPropertyOptional({ description: 'Reference number (card last 4, transaction ID, etc.)' })
+  @ApiPropertyOptional({
+    description: 'Reference number (card last 4, transaction ID, etc.)',
+  })
   @IsOptional()
   @IsString()
   referenceNumber?: string;
@@ -253,17 +280,27 @@ export class SyncOrderDto {
   @IsNotEmpty()
   orderNumber: string;
 
-  @ApiPropertyOptional({ description: 'Portal user ID of the operator who created the order' })
+  @ApiPropertyOptional({
+    description: 'Portal user ID of the operator who created the order',
+  })
   @IsOptional()
   @IsString()
   operatorId?: string;
 
-  @ApiPropertyOptional({ enum: OrderType, description: 'Type of order', default: 'DINE_IN' })
+  @ApiPropertyOptional({
+    enum: OrderType,
+    description: 'Type of order',
+    default: 'DINE_IN',
+  })
   @IsOptional()
   @IsEnum(OrderType)
   orderType?: OrderType;
 
-  @ApiPropertyOptional({ enum: OrderStatus, description: 'Order status', default: 'COMPLETED' })
+  @ApiPropertyOptional({
+    enum: OrderStatus,
+    description: 'Order status',
+    default: 'COMPLETED',
+  })
   @IsOptional()
   @IsEnum(OrderStatus)
   status?: OrderStatus;
@@ -345,7 +382,10 @@ export class SyncOrderDto {
   @Type(() => SyncOrderItemDto)
   items: SyncOrderItemDto[];
 
-  @ApiPropertyOptional({ type: [SyncOrderDiscountDto], description: 'Order discounts' })
+  @ApiPropertyOptional({
+    type: [SyncOrderDiscountDto],
+    description: 'Order discounts',
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })

@@ -1,0 +1,91 @@
+// POS Portal Backend - BIR Compliance Models
+// Z-Reading and Electronic Journal
+
+model ZReading {
+  id            String  @id @default(uuid())
+  posDeviceId   String  @map("pos_device_id")
+  branchId      String  @map("branch_id")
+  storeId       String  @map("store_id")
+  posZReadingId String? @map("pos_z_reading_id")
+
+  // Z-Counter (Non-resettable, increments daily)
+  zCounterNo Int @map("z_counter_no")
+
+  // Invoice Range
+  beginningInvoiceNo String @map("beginning_invoice_no") @db.VarChar(20)
+  endingInvoiceNo    String @map("ending_invoice_no") @db.VarChar(20)
+
+  // Grand Total Tracking (Non-resettable)
+  beginningGrandTotal Decimal @map("beginning_grand_total") @db.Decimal(15, 2)
+  endingGrandTotal    Decimal @map("ending_grand_total") @db.Decimal(15, 2)
+
+  // Daily Sales Summary
+  grossSales     Decimal @map("gross_sales") @db.Decimal(15, 2)
+  netSales       Decimal @map("net_sales") @db.Decimal(15, 2)
+  vatableSales   Decimal @map("vatable_sales") @db.Decimal(15, 2)
+  vatAmount      Decimal @map("vat_amount") @db.Decimal(15, 2)
+  vatExemptSales Decimal @map("vat_exempt_sales") @db.Decimal(15, 2)
+  zeroRatedSales Decimal @map("zero_rated_sales") @db.Decimal(15, 2)
+
+  // Adjustments
+  discountTotal Decimal @default(0) @map("discount_total") @db.Decimal(15, 2)
+  refundTotal   Decimal @default(0) @map("refund_total") @db.Decimal(15, 2)
+  voidTotal     Decimal @default(0) @map("void_total") @db.Decimal(15, 2)
+
+  // Transaction Counts
+  transactionCount Int @map("transaction_count")
+  voidCount        Int @default(0) @map("void_count")
+  refundCount      Int @default(0) @map("refund_count")
+
+  // Metadata
+  closedBy  String   @map("closed_by")
+  closedAt  DateTime @map("closed_at")
+  syncedAt  DateTime @default(now()) @map("synced_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  posDevice PosDevice @relation(fields: [posDeviceId], references: [id])
+
+  @@unique([posDeviceId, posZReadingId])
+  @@unique([posDeviceId, zCounterNo])
+  @@index([branchId])
+  @@index([storeId])
+  @@index([closedAt])
+  @@map("z_readings")
+}
+
+model ElectronicJournal {
+  id          String @id @default(uuid())
+  posDeviceId String @map("pos_device_id")
+  branchId    String @map("branch_id")
+  storeId     String @map("store_id")
+
+  // Transaction Reference
+  orderId         String? @map("order_id")
+  invoiceNumber   String  @map("invoice_number") @db.VarChar(20)
+  transactionType String  @map("transaction_type") @db.VarChar(20)
+
+  // Receipt Content (Read-only, immutable record)
+  receiptContent String @map("receipt_content") @db.Text
+  receiptHash    String @map("receipt_hash") @db.VarChar(64)
+
+  // Amounts
+  grandTotal Decimal @map("grand_total") @db.Decimal(10, 2)
+  vatAmount  Decimal @map("vat_amount") @db.Decimal(10, 2)
+
+  // Operator Info
+  operatorId   String @map("operator_id")
+  operatorName String @map("operator_name") @db.VarChar(100)
+
+  // Timestamps
+  transactionDate DateTime @map("transaction_date")
+  syncedAt        DateTime @default(now()) @map("synced_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([posDeviceId])
+  @@index([branchId])
+  @@index([storeId])
+  @@index([invoiceNumber])
+  @@index([transactionDate])
+  @@map("electronic_journal")
+}

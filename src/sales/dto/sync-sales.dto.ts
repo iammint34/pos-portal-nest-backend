@@ -43,7 +43,9 @@ export enum VoidRefundType {
 
 // ========== Order Item DTO ==========
 export class SyncOrderItemDto {
-  @ApiPropertyOptional({ description: 'Item ID from catalog (optional if item deleted)' })
+  @ApiPropertyOptional({
+    description: 'Item ID from catalog (optional if item deleted)',
+  })
   @IsOptional()
   @IsUUID()
   itemId?: string;
@@ -119,23 +121,32 @@ export class SyncPaymentDto {
   @IsEnum(PaymentMethod)
   method: PaymentMethod;
 
-  @ApiPropertyOptional({ enum: PaymentStatus, default: PaymentStatus.COMPLETED })
+  @ApiPropertyOptional({
+    enum: PaymentStatus,
+    default: PaymentStatus.COMPLETED,
+  })
   @IsOptional()
   @IsEnum(PaymentStatus)
   status?: PaymentStatus;
 
-  @ApiProperty({ example: 50.00 })
+  @ApiProperty({ example: 50.0 })
   @IsNumber()
   @Min(0)
   amount: number;
 
-  @ApiPropertyOptional({ example: 100.00, description: 'Amount tendered (for cash)' })
+  @ApiPropertyOptional({
+    example: 100.0,
+    description: 'Amount tendered (for cash)',
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)
   tenderedAmount?: number;
 
-  @ApiPropertyOptional({ example: 50.00, description: 'Change given (for cash)' })
+  @ApiPropertyOptional({
+    example: 50.0,
+    description: 'Change given (for cash)',
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -167,7 +178,7 @@ export class SyncVoidRefundDto {
   @IsString()
   reason?: string;
 
-  @ApiProperty({ example: 25.00 })
+  @ApiProperty({ example: 25.0 })
   @IsNumber()
   @Min(0)
   amount: number;
@@ -199,24 +210,24 @@ export class SyncOrderDto {
   @IsEnum(OrderStatus)
   status?: OrderStatus;
 
-  @ApiProperty({ example: 100.00 })
+  @ApiProperty({ example: 100.0 })
   @IsNumber()
   @Min(0)
   subtotal: number;
 
-  @ApiPropertyOptional({ example: 10.00, default: 0 })
+  @ApiPropertyOptional({ example: 10.0, default: 0 })
   @IsOptional()
   @IsNumber()
   @Min(0)
   discountTotal?: number;
 
-  @ApiPropertyOptional({ example: 12.00, default: 0 })
+  @ApiPropertyOptional({ example: 12.0, default: 0 })
   @IsOptional()
   @IsNumber()
   @Min(0)
   taxTotal?: number;
 
-  @ApiProperty({ example: 102.00 })
+  @ApiProperty({ example: 102.0 })
   @IsNumber()
   @Min(0)
   grandTotal: number;

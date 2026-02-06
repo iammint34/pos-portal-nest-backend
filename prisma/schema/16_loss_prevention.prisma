@@ -1,0 +1,60 @@
+// POS Portal Backend - Loss Prevention Models
+// Threshold configuration and incident tracking
+
+model LossPreventionThreshold {
+  id         String                   @id @default(uuid())
+  storeId    String                   @map("store_id")
+  metricType LossPreventionMetricType @map("metric_type")
+  threshold  Decimal                  @db.Decimal(10, 2)
+  timeWindow LossPreventionTimeWindow @map("time_window")
+  scope      LossPreventionScope
+  enabled    Boolean                  @default(true)
+  createdAt  DateTime                 @default(now()) @map("created_at")
+  updatedAt  DateTime                 @updatedAt @map("updated_at")
+
+  // Relations
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, metricType, scope])
+  @@index([storeId])
+  @@index([enabled])
+  @@map("loss_prevention_thresholds")
+}
+
+model LossPreventionIncident {
+  id             String                   @id @default(uuid())
+  storeId        String                   @map("store_id")
+  branchId       String                   @map("branch_id")
+  staffId        String?                  @map("staff_id")
+  posDeviceId    String?                  @map("pos_device_id")
+  metricType     LossPreventionMetricType @map("metric_type")
+  actualValue    Decimal                  @map("actual_value") @db.Decimal(10, 2)
+  thresholdValue Decimal                  @map("threshold_value") @db.Decimal(10, 2)
+  timeWindow     LossPreventionTimeWindow @map("time_window")
+  transactions   Json // Array of related transaction/order IDs
+  status         IncidentStatus           @default(OPEN)
+  severity       AlertSeverity            @default(WARNING)
+  resolution     String?                  @db.Text
+  resolvedBy     String?                  @map("resolved_by")
+  resolvedAt     DateTime?                @map("resolved_at")
+  acknowledgedBy String?                  @map("acknowledged_by")
+  acknowledgedAt DateTime?                @map("acknowledged_at")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+
+  // Relations
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  branch    Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  staff     User?      @relation("IncidentStaff", fields: [staffId], references: [id], onDelete: SetNull)
+  posDevice PosDevice? @relation(fields: [posDeviceId], references: [id], onDelete: SetNull)
+  resolver  User?      @relation("IncidentResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+
+  @@index([storeId])
+  @@index([branchId])
+  @@index([staffId])
+  @@index([status])
+  @@index([metricType])
+  @@index([createdAt])
+  @@index([storeId, status, createdAt])
+  @@map("loss_prevention_incidents")
+}

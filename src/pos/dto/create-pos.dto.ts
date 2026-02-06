@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsOptional, IsUUID, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsUUID,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
@@ -10,23 +16,35 @@ export class CreatePosDeviceDto {
   @IsNotEmpty()
   branchId: string;
 
-  @ApiPropertyOptional({ example: 'Cashier 1', description: 'Friendly name for the device' })
+  @ApiPropertyOptional({
+    example: 'Cashier 1',
+    description: 'Friendly name for the device',
+  })
   @IsOptional()
   @IsString()
   name?: string;
 
   // BIR Compliance Fields
-  @ApiPropertyOptional({ example: 'MIN-2024-000001', description: 'Machine Identification Number' })
+  @ApiPropertyOptional({
+    example: 'MIN-2024-000001',
+    description: 'Machine Identification Number',
+  })
   @IsOptional()
   @IsString()
   min?: string;
 
-  @ApiPropertyOptional({ example: 'SN123456789', description: 'POS terminal serial number' })
+  @ApiPropertyOptional({
+    example: 'SN123456789',
+    description: 'POS terminal serial number',
+  })
   @IsOptional()
   @IsString()
   serialNumber?: string;
 
-  @ApiPropertyOptional({ example: 'PMT-2024-000001', description: 'BIR Permit Number' })
+  @ApiPropertyOptional({
+    example: 'PMT-2024-000001',
+    description: 'BIR Permit Number',
+  })
   @IsOptional()
   @IsString()
   permitNumber?: string;
@@ -36,18 +54,29 @@ export class CreatePosDeviceDto {
  * DTO for registering a POS device using registration code (from POS device)
  */
 export class RegisterWithCodeDto {
-  @ApiProperty({ example: 'ABCD-1234', description: 'Registration code from Portal' })
+  @ApiProperty({
+    example: 'ABCD-1234',
+    description: 'Registration code from Portal',
+  })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Z0-9]{4}-[A-Z0-9]{4}$/, { message: 'Invalid registration code format' })
+  @Matches(/^[A-Z0-9]{4}-[A-Z0-9]{4}$/, {
+    message: 'Invalid registration code format',
+  })
   registrationCode: string;
 
-  @ApiProperty({ example: 'POS-001-ABC123', description: 'Unique device identifier' })
+  @ApiProperty({
+    example: 'POS-001-ABC123',
+    description: 'Unique device identifier',
+  })
   @IsString()
   @IsNotEmpty()
   deviceIdentifier: string;
 
-  @ApiPropertyOptional({ example: 'Counter 1', description: 'Device name (optional, overrides Portal name)' })
+  @ApiPropertyOptional({
+    example: 'Counter 1',
+    description: 'Device name (optional, overrides Portal name)',
+  })
   @IsOptional()
   @IsString()
   deviceName?: string;
@@ -124,17 +153,26 @@ export class UpdatePosDto {
   branchId?: string;
 
   // BIR Compliance Fields
-  @ApiPropertyOptional({ example: 'MIN-2024-000001', description: 'Machine Identification Number' })
+  @ApiPropertyOptional({
+    example: 'MIN-2024-000001',
+    description: 'Machine Identification Number',
+  })
   @IsOptional()
   @IsString()
   min?: string;
 
-  @ApiPropertyOptional({ example: 'SN123456789', description: 'POS terminal serial number' })
+  @ApiPropertyOptional({
+    example: 'SN123456789',
+    description: 'POS terminal serial number',
+  })
   @IsOptional()
   @IsString()
   serialNumber?: string;
 
-  @ApiPropertyOptional({ example: 'PMT-2024-000001', description: 'BIR Permit Number' })
+  @ApiPropertyOptional({
+    example: 'PMT-2024-000001',
+    description: 'BIR Permit Number',
+  })
   @IsOptional()
   @IsString()
   permitNumber?: string;

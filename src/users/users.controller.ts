@@ -44,8 +44,15 @@ export class UsersController {
 
   @Get()
   @Permissions('user.read')
-  @ApiOperation({ summary: 'Get all users. Excludes current logged-in user. Owners can see all or filter by storeId.' })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Filter by store ID (owners only)' })
+  @ApiOperation({
+    summary:
+      'Get all users. Excludes current logged-in user. Owners can see all or filter by storeId.',
+  })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Filter by store ID (owners only)',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   findAll(
@@ -55,7 +62,12 @@ export class UsersController {
     @Query('limit') limit?: number,
   ) {
     const effectiveStoreId = user?.storeId || storeId;
-    return this.usersService.findAll(effectiveStoreId, page, limit, user.userId);
+    return this.usersService.findAll(
+      effectiveStoreId,
+      page,
+      limit,
+      user.userId,
+    );
   }
 
   @Get(':id')

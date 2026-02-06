@@ -169,7 +169,9 @@ export class ItemsService {
     // Check for duplicate SKU if updating SKU
     if (updateItemDto.sku && updateItemDto.sku !== item.sku) {
       const existingSku = await this.prisma.item.findUnique({
-        where: { storeId_sku: { storeId: item.storeId, sku: updateItemDto.sku } },
+        where: {
+          storeId_sku: { storeId: item.storeId, sku: updateItemDto.sku },
+        },
       });
       if (existingSku && existingSku.id !== id) {
         throw new ConflictException('SKU already exists in this store');
@@ -298,7 +300,9 @@ export class ItemsService {
     await this.findOneItem(itemId, storeId);
 
     const results = await Promise.all(
-      availabilities.map((a) => this.setItemBranchAvailability(itemId, a, storeId)),
+      availabilities.map((a) =>
+        this.setItemBranchAvailability(itemId, a, storeId),
+      ),
     );
 
     return results;
@@ -400,7 +404,10 @@ export class ItemsService {
     if (updateCategoryDto.name && updateCategoryDto.name !== category.name) {
       const existing = await this.prisma.category.findUnique({
         where: {
-          storeId_name: { storeId: category.storeId, name: updateCategoryDto.name },
+          storeId_name: {
+            storeId: category.storeId,
+            name: updateCategoryDto.name,
+          },
         },
       });
       if (existing) {

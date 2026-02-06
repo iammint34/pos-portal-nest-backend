@@ -56,7 +56,9 @@ export class RbacService {
     });
 
     if (existingRole) {
-      throw new ConflictException('Role with this name already exists in store');
+      throw new ConflictException(
+        'Role with this name already exists in store',
+      );
     }
 
     const role = await this.prisma.role.create({
@@ -151,11 +153,15 @@ export class RbacService {
     // Check for duplicate name if updating name
     if (updateRoleDto.name && updateRoleDto.name !== role.name) {
       const existingRole = await this.prisma.role.findUnique({
-        where: { storeId_name: { storeId: role.storeId, name: updateRoleDto.name } },
+        where: {
+          storeId_name: { storeId: role.storeId, name: updateRoleDto.name },
+        },
       });
 
       if (existingRole) {
-        throw new ConflictException('Role with this name already exists in store');
+        throw new ConflictException(
+          'Role with this name already exists in store',
+        );
       }
     }
 
@@ -227,14 +233,19 @@ export class RbacService {
     return { message: 'Role deleted successfully' };
   }
 
-  private async assignPermissionsToRole(roleId: string, permissionCodes: string[]) {
+  private async assignPermissionsToRole(
+    roleId: string,
+    permissionCodes: string[],
+  ) {
     const permissions = await this.prisma.permission.findMany({
       where: { code: { in: permissionCodes } },
     });
 
     if (permissions.length !== permissionCodes.length) {
       const foundCodes = permissions.map((p) => p.code);
-      const notFoundCodes = permissionCodes.filter((c) => !foundCodes.includes(c));
+      const notFoundCodes = permissionCodes.filter(
+        (c) => !foundCodes.includes(c),
+      );
       throw new BadRequestException(
         `Invalid permissions: ${notFoundCodes.join(', ')}`,
       );

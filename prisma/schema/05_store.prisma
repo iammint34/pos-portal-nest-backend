@@ -1,0 +1,94 @@
+// POS Portal Backend - Store & Branch Models
+// Multi-tenant store management
+
+model Store {
+  id        String      @id @default(uuid())
+  name      String
+  type      StoreType   @default(OTHER)
+  status    StoreStatus @default(ACTIVE)
+  address   String?     @db.Text
+  phone     String?
+  email     String?
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  deletedAt DateTime?   @map("deleted_at")
+
+  // BIR Compliance Fields
+  registeredName    String? @map("registered_name") @db.VarChar(255)
+  registeredAddress String? @map("registered_address") @db.Text
+  vatTin            String? @map("vat_tin") @db.VarChar(20)
+  isVatRegistered   Boolean @default(true) @map("is_vat_registered")
+
+  // Relations
+  branches   Branch[]
+  storeUsers StoreUser[]
+  roles      Role[]
+  items      Item[]
+  categories Category[]
+  auditLogs  AuditLog[]
+
+  // Enhancement Relations
+  storeFeatures            StoreFeature[]
+  notificationPreferences  NotificationPreference[]
+  notificationLogs         NotificationLog[]
+  notificationSchedules    NotificationSchedule[]
+  lossPreventionThresholds LossPreventionThreshold[]
+  lossPreventionIncidents  LossPreventionIncident[]
+  cloneJobs                CloneJob[]
+  backgroundJobs           BackgroundJob[]
+  jobSchedules             JobSchedule[]
+
+  @@map("stores")
+}
+
+model StoreUser {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  storeId   String    @map("store_id")
+  roleId    String    @map("role_id")
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  role  Role  @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, storeId])
+  @@index([storeId])
+  @@index([roleId])
+  @@map("store_users")
+}
+
+model Branch {
+  id         String       @id @default(uuid())
+  storeId    String       @map("store_id")
+  name       String
+  address    String?      @db.Text
+  phone      String?
+  status     BranchStatus @default(OFFLINE)
+  lastSyncAt DateTime?    @map("last_sync_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+  deletedAt  DateTime?    @map("deleted_at")
+
+  // BIR Compliance Fields - PTU (Permit To Use) info per branch
+  ptuNo           String?   @map("ptu_no") @db.VarChar(50)
+  ptuDateIssued   DateTime? @map("ptu_date_issued")
+  ptuValidUntil   DateTime? @map("ptu_valid_until")
+  accreditationNo String?   @map("accreditation_no") @db.VarChar(50)
+
+  // Relations
+  store           Store             @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  posDevices      PosDevice[]
+  itemBranches    ItemBranch[]
+  branchInventory BranchInventory[]
+
+  // Enhancement Relations
+  lossPreventionIncidents LossPreventionIncident[]
+
+  @@index([storeId])
+  @@map("branches")
+}

@@ -123,11 +123,16 @@ export class AlertsService {
   }
 
   async createAlertIfNotDuplicate(data: CreateAlertData) {
-    const config = await this.alertConfigService.getConfig(data.storeId, data.type);
+    const config = await this.alertConfigService.getConfig(
+      data.storeId,
+      data.type,
+    );
 
     if (!config.enabled) return null;
 
-    const cooldownDate = new Date(Date.now() - config.cooldownMinutes * 60 * 1000);
+    const cooldownDate = new Date(
+      Date.now() - config.cooldownMinutes * 60 * 1000,
+    );
 
     // Build duplicate check query
     const duplicateWhere: Prisma.AlertWhereInput = {

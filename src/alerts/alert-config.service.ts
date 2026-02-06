@@ -14,7 +14,10 @@ export interface ResolvedAlertConfig {
   cooldownMinutes: number;
 }
 
-const DEFAULT_CONFIGS: Record<AlertType, { thresholds: AlertThresholds; cooldownMinutes: number }> = {
+const DEFAULT_CONFIGS: Record<
+  AlertType,
+  { thresholds: AlertThresholds; cooldownMinutes: number }
+> = {
   ZERO_SALES_BRANCH: {
     thresholds: {
       noSalesHours: 4,
@@ -27,7 +30,7 @@ const DEFAULT_CONFIGS: Record<AlertType, { thresholds: AlertThresholds; cooldown
     thresholds: {
       windowHours: 4,
       warningThreshold: 0.15,
-      criticalThreshold: 0.30,
+      criticalThreshold: 0.3,
     },
     cooldownMinutes: 60,
   },
@@ -51,7 +54,10 @@ const DEFAULT_CONFIGS: Record<AlertType, { thresholds: AlertThresholds; cooldown
 export class AlertConfigService {
   constructor(private prisma: PrismaService) {}
 
-  async getConfig(storeId: string, alertType: AlertType): Promise<ResolvedAlertConfig> {
+  async getConfig(
+    storeId: string,
+    alertType: AlertType,
+  ): Promise<ResolvedAlertConfig> {
     const dbConfig = await this.prisma.alertConfig.findUnique({
       where: { storeId_alertType: { storeId, alertType } },
     });
@@ -70,7 +76,8 @@ export class AlertConfigService {
     return {
       alertType,
       enabled: dbConfig.enabled,
-      thresholds: (dbConfig.thresholds as AlertThresholds) || defaults.thresholds,
+      thresholds:
+        (dbConfig.thresholds as AlertThresholds) || defaults.thresholds,
       cooldownMinutes: dbConfig.cooldownMinutes,
     };
   }
@@ -99,7 +106,8 @@ export class AlertConfigService {
       return {
         alertType,
         enabled: dbConfig.enabled,
-        thresholds: (dbConfig.thresholds as AlertThresholds) || defaults.thresholds,
+        thresholds:
+          (dbConfig.thresholds as AlertThresholds) || defaults.thresholds,
         cooldownMinutes: dbConfig.cooldownMinutes,
       };
     });
@@ -113,7 +121,8 @@ export class AlertConfigService {
     const data: Record<string, unknown> = {};
     if (dto.enabled !== undefined) data.enabled = dto.enabled;
     if (dto.thresholds !== undefined) data.thresholds = dto.thresholds;
-    if (dto.cooldownMinutes !== undefined) data.cooldownMinutes = dto.cooldownMinutes;
+    if (dto.cooldownMinutes !== undefined)
+      data.cooldownMinutes = dto.cooldownMinutes;
 
     return this.prisma.alertConfig.upsert({
       where: { storeId_alertType: { storeId, alertType } },
@@ -122,8 +131,10 @@ export class AlertConfigService {
         storeId,
         alertType,
         enabled: dto.enabled ?? true,
-        thresholds: (dto.thresholds ?? DEFAULT_CONFIGS[alertType].thresholds) as Prisma.InputJsonValue,
-        cooldownMinutes: dto.cooldownMinutes ?? DEFAULT_CONFIGS[alertType].cooldownMinutes,
+        thresholds: (dto.thresholds ??
+          DEFAULT_CONFIGS[alertType].thresholds) as Prisma.InputJsonValue,
+        cooldownMinutes:
+          dto.cooldownMinutes ?? DEFAULT_CONFIGS[alertType].cooldownMinutes,
       },
     });
   }

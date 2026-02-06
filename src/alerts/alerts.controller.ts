@@ -13,7 +13,11 @@ import { AlertType } from '@prisma/client';
 import { AlertsService } from './alerts.service';
 import { AlertConfigService } from './alert-config.service';
 import { AlertQueryDto, BulkDismissDto, UpdateAlertConfigDto } from './dto';
-import { Permissions, CurrentUser, CurrentUserData } from '../common/decorators';
+import {
+  Permissions,
+  CurrentUser,
+  CurrentUserData,
+} from '../common/decorators';
 
 @ApiTags('alerts')
 @Controller('alerts')
@@ -58,10 +62,7 @@ export class AlertsController {
   @Patch(':id/dismiss')
   @Permissions('alert.dismiss')
   @ApiOperation({ summary: 'Dismiss an alert' })
-  dismissAlert(
-    @Param('id') id: string,
-    @CurrentUser() user: CurrentUserData,
-  ) {
+  dismissAlert(@Param('id') id: string, @CurrentUser() user: CurrentUserData) {
     return this.alertsService.dismissAlert(id, user.userId);
   }
 

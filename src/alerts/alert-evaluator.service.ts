@@ -3,7 +3,10 @@ import { Cron } from '@nestjs/schedule';
 import { AlertType, AlertSeverity } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AlertsService } from './alerts.service';
-import { AlertConfigService, ResolvedAlertConfig } from './alert-config.service';
+import {
+  AlertConfigService,
+  ResolvedAlertConfig,
+} from './alert-config.service';
 
 @Injectable()
 export class AlertEvaluatorService {
@@ -58,7 +61,10 @@ export class AlertEvaluatorService {
     };
 
     const currentHour = new Date().getHours();
-    if (currentHour < thresholds.businessStartHour || currentHour >= thresholds.businessEndHour) {
+    if (
+      currentHour < thresholds.businessStartHour ||
+      currentHour >= thresholds.businessEndHour
+    ) {
       return;
     }
 
@@ -71,7 +77,9 @@ export class AlertEvaluatorService {
       select: { id: true, name: true },
     });
 
-    const sinceDate = new Date(Date.now() - thresholds.noSalesHours * 60 * 60 * 1000);
+    const sinceDate = new Date(
+      Date.now() - thresholds.noSalesHours * 60 * 60 * 1000,
+    );
 
     for (const branch of branches) {
       const orderCount = await this.prisma.order.count({
@@ -109,7 +117,9 @@ export class AlertEvaluatorService {
       criticalThreshold: number;
     };
 
-    const sinceDate = new Date(Date.now() - thresholds.windowHours * 60 * 60 * 1000);
+    const sinceDate = new Date(
+      Date.now() - thresholds.windowHours * 60 * 60 * 1000,
+    );
 
     const branches = await this.prisma.branch.findMany({
       where: { storeId, deletedAt: null },
@@ -232,7 +242,10 @@ export class AlertEvaluatorService {
     });
 
     for (const inv of lowStock) {
-      if (inv.lowStockThreshold !== null && inv.currentQuantity <= inv.lowStockThreshold) {
+      if (
+        inv.lowStockThreshold !== null &&
+        inv.currentQuantity <= inv.lowStockThreshold
+      ) {
         await this.alertsService.createAlertIfNotDuplicate({
           storeId,
           type: AlertType.INVENTORY_ANOMALY,

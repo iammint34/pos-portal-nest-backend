@@ -96,7 +96,10 @@ export class ReportsService {
       },
     });
 
-    const todaySales = todayOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
+    const todaySales = todayOrders.reduce(
+      (sum, o) => sum + Number(o.grandTotal),
+      0,
+    );
     const todayCount = todayOrders.length;
     const todayAvgOrder = todayCount > 0 ? todaySales / todayCount : 0;
 
@@ -109,7 +112,10 @@ export class ReportsService {
       },
     });
 
-    const yesterdaySales = yesterdayOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
+    const yesterdaySales = yesterdayOrders.reduce(
+      (sum, o) => sum + Number(o.grandTotal),
+      0,
+    );
     const yesterdayCount = yesterdayOrders.length;
 
     // Week's stats
@@ -121,7 +127,10 @@ export class ReportsService {
       },
     });
 
-    const weekSales = weekOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
+    const weekSales = weekOrders.reduce(
+      (sum, o) => sum + Number(o.grandTotal),
+      0,
+    );
 
     // Month's stats
     const monthOrders = await this.prisma.order.findMany({
@@ -132,11 +141,20 @@ export class ReportsService {
       },
     });
 
-    const monthSales = monthOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
+    const monthSales = monthOrders.reduce(
+      (sum, o) => sum + Number(o.grandTotal),
+      0,
+    );
 
     // Growth calculations
-    const salesGrowth = yesterdaySales > 0 ? ((todaySales - yesterdaySales) / yesterdaySales) * 100 : 0;
-    const ordersGrowth = yesterdayCount > 0 ? ((todayCount - yesterdayCount) / yesterdayCount) * 100 : 0;
+    const salesGrowth =
+      yesterdaySales > 0
+        ? ((todaySales - yesterdaySales) / yesterdaySales) * 100
+        : 0;
+    const ordersGrowth =
+      yesterdayCount > 0
+        ? ((todayCount - yesterdayCount) / yesterdayCount) * 100
+        : 0;
 
     return {
       todaySales,
@@ -156,7 +174,10 @@ export class ReportsService {
   /**
    * Get sales summary
    */
-  async getSalesSummary(storeId: string, dto: ReportQueryDto): Promise<SalesSummaryDto> {
+  async getSalesSummary(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesSummaryDto> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -170,28 +191,65 @@ export class ReportsService {
       },
     });
 
-    const completedOrders = orders.filter(o => o.status === OrderStatus.COMPLETED);
-    const voidedOrders = orders.filter(o => o.status === OrderStatus.VOIDED);
+    const completedOrders = orders.filter(
+      (o) => o.status === OrderStatus.COMPLETED,
+    );
+    const voidedOrders = orders.filter((o) => o.status === OrderStatus.VOIDED);
 
-    const grossSales = completedOrders.reduce((sum, o) => sum + Number(o.subtotal), 0);
-    const totalDiscounts = completedOrders.reduce((sum, o) => sum + Number(o.discountTotal), 0);
-    const netSales = completedOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
-    const totalTax = completedOrders.reduce((sum, o) => sum + Number(o.taxTotal), 0);
+    const grossSales = completedOrders.reduce(
+      (sum, o) => sum + Number(o.subtotal),
+      0,
+    );
+    const totalDiscounts = completedOrders.reduce(
+      (sum, o) => sum + Number(o.discountTotal),
+      0,
+    );
+    const netSales = completedOrders.reduce(
+      (sum, o) => sum + Number(o.grandTotal),
+      0,
+    );
+    const totalTax = completedOrders.reduce(
+      (sum, o) => sum + Number(o.taxTotal),
+      0,
+    );
 
-    const vatableSales = completedOrders.reduce((sum, o) => sum + Number(o.vatableSales || 0), 0);
-    const vatAmount = completedOrders.reduce((sum, o) => sum + Number(o.vatAmount || 0), 0);
-    const vatExemptSales = completedOrders.reduce((sum, o) => sum + Number(o.vatExemptSales || 0), 0);
-    const zeroRatedSales = completedOrders.reduce((sum, o) => sum + Number(o.zeroRatedSales || 0), 0);
+    const vatableSales = completedOrders.reduce(
+      (sum, o) => sum + Number(o.vatableSales || 0),
+      0,
+    );
+    const vatAmount = completedOrders.reduce(
+      (sum, o) => sum + Number(o.vatAmount || 0),
+      0,
+    );
+    const vatExemptSales = completedOrders.reduce(
+      (sum, o) => sum + Number(o.vatExemptSales || 0),
+      0,
+    );
+    const zeroRatedSales = completedOrders.reduce(
+      (sum, o) => sum + Number(o.zeroRatedSales || 0),
+      0,
+    );
 
-    const allPayments = completedOrders.flatMap(o => o.payments).filter(p => p.status === PaymentStatus.COMPLETED);
+    const allPayments = completedOrders
+      .flatMap((o) => o.payments)
+      .filter((p) => p.status === PaymentStatus.COMPLETED);
     const cashSales = allPayments
-      .filter(p => p.paymentMethod === PaymentMethod.CASH)
+      .filter((p) => p.paymentMethod === PaymentMethod.CASH)
       .reduce((sum, p) => sum + Number(p.amount), 0);
     const cardSales = allPayments
-      .filter(p => p.paymentMethod === PaymentMethod.CREDIT_CARD || p.paymentMethod === PaymentMethod.DEBIT_CARD)
+      .filter(
+        (p) =>
+          p.paymentMethod === PaymentMethod.CREDIT_CARD ||
+          p.paymentMethod === PaymentMethod.DEBIT_CARD,
+      )
       .reduce((sum, p) => sum + Number(p.amount), 0);
     const otherSales = allPayments
-      .filter(p => p.paymentMethod !== PaymentMethod.CASH && p.paymentMethod !== PaymentMethod.CREDIT_CARD && p.paymentMethod !== PaymentMethod.DEBIT_CARD)
+      .filter(
+        (p) =>
+          p.paymentMethod !== PaymentMethod.CASH &&
+          p.paymentMethod !== PaymentMethod.CREDIT_CARD &&
+          p.paymentMethod !== PaymentMethod.DEBIT_CARD,
+      )
       .reduce((sum, p) => sum + Number(p.amount), 0);
 
     const refunds = await this.prisma.refund.findMany({
@@ -218,7 +276,8 @@ export class ReportsService {
       cashSales,
       cardSales,
       otherSales,
-      averageOrderValue: completedOrders.length > 0 ? netSales / completedOrders.length : 0,
+      averageOrderValue:
+        completedOrders.length > 0 ? netSales / completedOrders.length : 0,
       periodStart: start.toISOString(),
       periodEnd: end.toISOString(),
     };
@@ -227,7 +286,10 @@ export class ReportsService {
   /**
    * Get sales by branch
    */
-  async getSalesByBranch(storeId: string, dto: ReportQueryDto): Promise<SalesByBranchDto[]> {
+  async getSalesByBranch(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesByBranchDto[]> {
     const { start, end } = this.getDateRange(dto);
 
     const branches = await this.prisma.branch.findMany({
@@ -254,13 +316,16 @@ export class ReportsService {
     });
 
     // Group by branch
-    const branchMap = new Map<string, {
-      name: string;
-      orderCount: number;
-      gross: number;
-      discounts: number;
-      refunds: number;
-    }>();
+    const branchMap = new Map<
+      string,
+      {
+        name: string;
+        orderCount: number;
+        gross: number;
+        discounts: number;
+        refunds: number;
+      }
+    >();
 
     for (const branch of branches) {
       branchMap.set(branch.id, {
@@ -288,7 +353,10 @@ export class ReportsService {
       }
     }
 
-    const totalNet = Array.from(branchMap.values()).reduce((sum, b) => sum + (b.gross - b.discounts - b.refunds), 0);
+    const totalNet = Array.from(branchMap.values()).reduce(
+      (sum, b) => sum + (b.gross - b.discounts - b.refunds),
+      0,
+    );
 
     return Array.from(branchMap.entries())
       .map(([branchId, data]) => {
@@ -310,7 +378,10 @@ export class ReportsService {
   /**
    * Get sales by device
    */
-  async getSalesByDevice(storeId: string, dto: ReportQueryDto): Promise<SalesByDeviceDto[]> {
+  async getSalesByDevice(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesByDeviceDto[]> {
     const { start, end } = this.getDateRange(dto);
 
     const devices = await this.prisma.posDevice.findMany({
@@ -333,13 +404,16 @@ export class ReportsService {
     });
 
     // Group by device
-    const deviceMap = new Map<string, {
-      name: string;
-      branchName: string;
-      orderCount: number;
-      gross: number;
-      discounts: number;
-    }>();
+    const deviceMap = new Map<
+      string,
+      {
+        name: string;
+        branchName: string;
+        orderCount: number;
+        gross: number;
+        discounts: number;
+      }
+    >();
 
     for (const device of devices) {
       deviceMap.set(device.id, {
@@ -360,7 +434,10 @@ export class ReportsService {
       }
     }
 
-    const totalNet = Array.from(deviceMap.values()).reduce((sum, d) => sum + (d.gross - d.discounts), 0);
+    const totalNet = Array.from(deviceMap.values()).reduce(
+      (sum, d) => sum + (d.gross - d.discounts),
+      0,
+    );
 
     return Array.from(deviceMap.entries())
       .map(([deviceId, data]) => {
@@ -376,14 +453,17 @@ export class ReportsService {
           percentage: totalNet > 0 ? (netSales / totalNet) * 100 : 0,
         };
       })
-      .filter(d => d.orderCount > 0)
+      .filter((d) => d.orderCount > 0)
       .sort((a, b) => b.netSales - a.netSales);
   }
 
   /**
    * Get sales by category
    */
-  async getSalesByCategory(storeId: string, dto: ReportQueryDto): Promise<SalesByCategoryDto[]> {
+  async getSalesByCategory(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesByCategoryDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -405,13 +485,16 @@ export class ReportsService {
       },
     });
 
-    const categoryMap = new Map<string, {
-      categoryName: string;
-      items: Set<string>;
-      quantity: number;
-      gross: number;
-      discounts: number;
-    }>();
+    const categoryMap = new Map<
+      string,
+      {
+        categoryName: string;
+        items: Set<string>;
+        quantity: number;
+        gross: number;
+        discounts: number;
+      }
+    >();
 
     for (const oi of orderItems) {
       const categoryId = oi.item?.category?.id || 'uncategorized';
@@ -434,7 +517,10 @@ export class ReportsService {
       cat.discounts += Number(oi.discountAmount);
     }
 
-    const totalNet = Array.from(categoryMap.values()).reduce((sum, c) => sum + (c.gross - c.discounts), 0);
+    const totalNet = Array.from(categoryMap.values()).reduce(
+      (sum, c) => sum + (c.gross - c.discounts),
+      0,
+    );
 
     return Array.from(categoryMap.entries())
       .map(([categoryId, data]) => {
@@ -456,7 +542,10 @@ export class ReportsService {
   /**
    * Get sales by item
    */
-  async getSalesByItem(storeId: string, dto: ReportQueryDto): Promise<{ data: SalesByItemDto[]; meta: any }> {
+  async getSalesByItem(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<{ data: SalesByItemDto[]; meta: any }> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
     const page = dto.page || 1;
@@ -480,14 +569,17 @@ export class ReportsService {
       },
     });
 
-    const itemMap = new Map<string, {
-      itemName: string;
-      itemSku?: string;
-      categoryName?: string;
-      quantity: number;
-      gross: number;
-      discounts: number;
-    }>();
+    const itemMap = new Map<
+      string,
+      {
+        itemName: string;
+        itemSku?: string;
+        categoryName?: string;
+        quantity: number;
+        gross: number;
+        discounts: number;
+      }
+    >();
 
     for (const oi of orderItems) {
       const itemId = oi.itemId || oi.id;
@@ -544,8 +636,16 @@ export class ReportsService {
   /**
    * Get top selling items
    */
-  async getTopSellingItems(storeId: string, dto: ReportQueryDto, topN: number = 10): Promise<TopSellingItemDto[]> {
-    const result = await this.getSalesByItem(storeId, { ...dto, limit: topN, page: 1 });
+  async getTopSellingItems(
+    storeId: string,
+    dto: ReportQueryDto,
+    topN: number = 10,
+  ): Promise<TopSellingItemDto[]> {
+    const result = await this.getSalesByItem(storeId, {
+      ...dto,
+      limit: topN,
+      page: 1,
+    });
     return result.data.map((item, index) => ({
       ...item,
       revenue: item.netSales,
@@ -556,7 +656,10 @@ export class ReportsService {
   /**
    * Get sales by payment method
    */
-  async getSalesByPaymentMethod(storeId: string, dto: ReportQueryDto): Promise<SalesByPaymentMethodDto[]> {
+  async getSalesByPaymentMethod(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesByPaymentMethodDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -571,7 +674,10 @@ export class ReportsService {
       },
     });
 
-    const methodMap = new Map<string, { count: number; amount: number; tips: number }>();
+    const methodMap = new Map<
+      string,
+      { count: number; amount: number; tips: number }
+    >();
 
     for (const p of payments) {
       const method = p.paymentMethod;
@@ -584,7 +690,10 @@ export class ReportsService {
       m.tips += Number(p.tipAmount);
     }
 
-    const totalAmount = Array.from(methodMap.values()).reduce((sum, m) => sum + m.amount, 0);
+    const totalAmount = Array.from(methodMap.values()).reduce(
+      (sum, m) => sum + m.amount,
+      0,
+    );
 
     return Array.from(methodMap.entries())
       .map(([method, data]) => ({
@@ -600,7 +709,10 @@ export class ReportsService {
   /**
    * Get sales by hour
    */
-  async getSalesByHour(storeId: string, dto: ReportQueryDto): Promise<SalesByHourDto[]> {
+  async getSalesByHour(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesByHourDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -615,7 +727,10 @@ export class ReportsService {
       },
     });
 
-    const hourMap = new Map<number, { count: number; sales: number; items: number }>();
+    const hourMap = new Map<
+      number,
+      { count: number; sales: number; items: number }
+    >();
 
     for (let i = 0; i < 24; i++) {
       hourMap.set(i, { count: 0, sales: 0, items: 0 });
@@ -633,7 +748,7 @@ export class ReportsService {
       const startHour = h % 12 || 12;
       const endHour = (h + 1) % 12 || 12;
       const startPeriod = h < 12 ? 'AM' : 'PM';
-      const endPeriod = (h + 1) < 12 || (h + 1) === 24 ? 'AM' : 'PM';
+      const endPeriod = h + 1 < 12 || h + 1 === 24 ? 'AM' : 'PM';
       return `${startHour}:00 ${startPeriod} - ${endHour}:00 ${endPeriod}`;
     };
 
@@ -651,7 +766,10 @@ export class ReportsService {
   /**
    * Get sales trend (daily breakdown)
    */
-  async getSalesTrend(storeId: string, dto: ReportQueryDto): Promise<SalesTrendDto[]> {
+  async getSalesTrend(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<SalesTrendDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -664,7 +782,10 @@ export class ReportsService {
     });
 
     // Group by date
-    const dateMap = new Map<string, { count: number; gross: number; net: number }>();
+    const dateMap = new Map<
+      string,
+      { count: number; gross: number; net: number }
+    >();
 
     for (const order of orders) {
       const dateKey = new Date(order.posCreatedAt).toISOString().split('T')[0];
@@ -690,7 +811,10 @@ export class ReportsService {
   /**
    * Get transaction history
    */
-  async getTransactions(storeId: string, dto: ReportQueryDto): Promise<{ data: TransactionDto[]; meta: any }> {
+  async getTransactions(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<{ data: TransactionDto[]; meta: any }> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
     const page = dto.page || 1;
@@ -706,7 +830,11 @@ export class ReportsService {
           orderItems: { where: { isVoided: false } },
           payments: { where: { status: PaymentStatus.COMPLETED } },
           posDevice: {
-            select: { name: true, deviceIdentifier: true, branch: { select: { name: true } } },
+            select: {
+              name: true,
+              deviceIdentifier: true,
+              branch: { select: { name: true } },
+            },
           },
         },
         orderBy: { posCreatedAt: 'desc' },
@@ -722,7 +850,7 @@ export class ReportsService {
     ]);
 
     return {
-      data: orders.map(o => ({
+      data: orders.map((o) => ({
         id: o.id,
         orderNumber: o.orderNumber,
         invoiceNumber: o.invoiceNumber || undefined,
@@ -734,9 +862,11 @@ export class ReportsService {
         taxTotal: Number(o.taxTotal),
         grandTotal: Number(o.grandTotal),
         itemCount: o.orderItems.reduce((sum, oi) => sum + oi.quantity, 0),
-        paymentMethod: o.payments.length > 0 ? o.payments[0].paymentMethod : undefined,
+        paymentMethod:
+          o.payments.length > 0 ? o.payments[0].paymentMethod : undefined,
         branchName: o.posDevice.branch.name,
-        deviceName: o.posDevice.name || o.posDevice.deviceIdentifier || 'Unknown',
+        deviceName:
+          o.posDevice.name || o.posDevice.deviceIdentifier || 'Unknown',
         createdAt: o.posCreatedAt.toISOString(),
         closedAt: o.posClosedAt?.toISOString(),
       })),
@@ -752,7 +882,10 @@ export class ReportsService {
   /**
    * Get voided transactions
    */
-  async getVoidedTransactions(storeId: string, dto: ReportQueryDto): Promise<{ data: VoidedTransactionDto[]; meta: any }> {
+  async getVoidedTransactions(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<{ data: VoidedTransactionDto[]; meta: any }> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
     const page = dto.page || 1;
@@ -767,7 +900,11 @@ export class ReportsService {
         },
         include: {
           posDevice: {
-            select: { name: true, deviceIdentifier: true, branch: { select: { name: true } } },
+            select: {
+              name: true,
+              deviceIdentifier: true,
+              branch: { select: { name: true } },
+            },
           },
         },
         orderBy: { posCreatedAt: 'desc' },
@@ -784,14 +921,15 @@ export class ReportsService {
     ]);
 
     return {
-      data: orders.map(o => ({
+      data: orders.map((o) => ({
         id: o.id,
         orderNumber: o.orderNumber,
         invoiceNumber: o.invoiceNumber || undefined,
         originalTotal: Number(o.grandTotal),
         voidReason: o.notes || undefined,
         branchName: o.posDevice.branch.name,
-        deviceName: o.posDevice.name || o.posDevice.deviceIdentifier || 'Unknown',
+        deviceName:
+          o.posDevice.name || o.posDevice.deviceIdentifier || 'Unknown',
         voidedAt: o.posClosedAt?.toISOString() || o.posCreatedAt.toISOString(),
       })),
       meta: {
@@ -806,7 +944,10 @@ export class ReportsService {
   /**
    * Get discount report
    */
-  async getDiscountReport(storeId: string, dto: ReportQueryDto): Promise<DiscountReportDto[]> {
+  async getDiscountReport(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<DiscountReportDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -820,14 +961,17 @@ export class ReportsService {
       },
     });
 
-    const discountMap = new Map<string, {
-      name: string;
-      type: string;
-      scope: string;
-      count: number;
-      total: number;
-      orders: Set<string>;
-    }>();
+    const discountMap = new Map<
+      string,
+      {
+        name: string;
+        type: string;
+        scope: string;
+        count: number;
+        total: number;
+        orders: Set<string>;
+      }
+    >();
 
     for (const d of discounts) {
       const key = d.discountName;
@@ -848,7 +992,7 @@ export class ReportsService {
     }
 
     return Array.from(discountMap.values())
-      .map(d => ({
+      .map((d) => ({
         discountName: d.name,
         discountType: d.type,
         discountScope: d.scope,
@@ -862,7 +1006,10 @@ export class ReportsService {
   /**
    * Get refund report
    */
-  async getRefundReport(storeId: string, dto: ReportQueryDto): Promise<{ data: RefundReportDto[]; meta: any }> {
+  async getRefundReport(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<{ data: RefundReportDto[]; meta: any }> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
     const page = dto.page || 1;
@@ -898,7 +1045,7 @@ export class ReportsService {
     ]);
 
     return {
-      data: refunds.map(r => ({
+      data: refunds.map((r) => ({
         id: r.id,
         orderId: r.orderId,
         orderNumber: r.order.orderNumber,
@@ -922,7 +1069,10 @@ export class ReportsService {
   /**
    * Get shift history
    */
-  async getShiftHistory(storeId: string, dto: ReportQueryDto): Promise<{ data: ShiftReportDto[]; meta: any }> {
+  async getShiftHistory(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<{ data: ShiftReportDto[]; meta: any }> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
     const page = dto.page || 1;
@@ -937,7 +1087,11 @@ export class ReportsService {
         include: {
           operator: { select: { firstName: true, lastName: true } },
           posDevice: {
-            select: { name: true, deviceIdentifier: true, branch: { select: { name: true } } },
+            select: {
+              name: true,
+              deviceIdentifier: true,
+              branch: { select: { name: true } },
+            },
           },
           _count: { select: { orders: true } },
         },
@@ -955,7 +1109,7 @@ export class ReportsService {
 
     // Get total sales for each shift
     const shiftSales = await Promise.all(
-      shifts.map(async s => {
+      shifts.map(async (s) => {
         const orders = await this.prisma.order.findMany({
           where: {
             shiftId: s.id,
@@ -964,24 +1118,30 @@ export class ReportsService {
           select: { grandTotal: true },
         });
         return orders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
-      })
+      }),
     );
 
     return {
       data: shifts.map((s, i) => {
         let duration: string | undefined;
         if (s.closedAt) {
-          const durationMs = new Date(s.closedAt).getTime() - new Date(s.openedAt).getTime();
+          const durationMs =
+            new Date(s.closedAt).getTime() - new Date(s.openedAt).getTime();
           const hours = Math.floor(durationMs / (1000 * 60 * 60));
-          const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+          const minutes = Math.floor(
+            (durationMs % (1000 * 60 * 60)) / (1000 * 60),
+          );
           duration = `${hours}h ${minutes}m`;
         }
 
         return {
           id: s.id,
-          operatorName: s.operator ? `${s.operator.firstName} ${s.operator.lastName}` : 'Unknown',
+          operatorName: s.operator
+            ? `${s.operator.firstName} ${s.operator.lastName}`
+            : 'Unknown',
           branchName: s.posDevice.branch.name,
-          deviceName: s.posDevice.name || s.posDevice.deviceIdentifier || 'Unknown',
+          deviceName:
+            s.posDevice.name || s.posDevice.deviceIdentifier || 'Unknown',
           status: s.status,
           openedAt: s.openedAt.toISOString(),
           closedAt: s.closedAt?.toISOString(),
@@ -1006,7 +1166,10 @@ export class ReportsService {
   /**
    * Get Z-Reading history
    */
-  async getZReadingHistory(storeId: string, dto: ReportQueryDto): Promise<{ data: ZReadingReportDto[]; meta: any }> {
+  async getZReadingHistory(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<{ data: ZReadingReportDto[]; meta: any }> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
     const page = dto.page || 1;
@@ -1020,7 +1183,11 @@ export class ReportsService {
         },
         include: {
           posDevice: {
-            select: { name: true, deviceIdentifier: true, branch: { select: { name: true } } },
+            select: {
+              name: true,
+              deviceIdentifier: true,
+              branch: { select: { name: true } },
+            },
           },
         },
         orderBy: { closedAt: 'desc' },
@@ -1036,11 +1203,12 @@ export class ReportsService {
     ]);
 
     return {
-      data: zReadings.map(z => ({
+      data: zReadings.map((z) => ({
         id: z.id,
         zCounterNo: z.zCounterNo,
         branchName: z.posDevice.branch.name,
-        deviceName: z.posDevice.name || z.posDevice.deviceIdentifier || 'Unknown',
+        deviceName:
+          z.posDevice.name || z.posDevice.deviceIdentifier || 'Unknown',
         readingDate: z.closedAt.toISOString(),
         beginningInvoice: z.beginningInvoiceNo,
         endingInvoice: z.endingInvoiceNo,
@@ -1220,15 +1388,24 @@ export class ReportsService {
     }
 
     // Get user names for closedBy IDs
-    const userIds = [...new Set(zReadings.map(z => z.closedBy).filter(id => id && id !== 'system'))];
-    const users = userIds.length > 0 ? await this.prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { id: true, firstName: true, lastName: true },
-    }) : [];
-    const userMap = new Map(users.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+    const userIds = [
+      ...new Set(
+        zReadings.map((z) => z.closedBy).filter((id) => id && id !== 'system'),
+      ),
+    ];
+    const users =
+      userIds.length > 0
+        ? await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, firstName: true, lastName: true },
+          })
+        : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, `${u.firstName} ${u.lastName}`]),
+    );
 
     // Attach user names to z-readings
-    const zReadingsWithUsers = zReadings.map(z => {
+    const zReadingsWithUsers = zReadings.map((z) => {
       if (z.closedBy === 'system') {
         return { ...z, closedByName: 'SYSTEM' };
       }
@@ -1236,7 +1413,9 @@ export class ReportsService {
       const shortId = z.closedBy.substring(0, 8).toUpperCase();
       return {
         ...z,
-        closedByName: userName ? `${userName.toUpperCase()} (${shortId})` : z.closedBy,
+        closedByName: userName
+          ? `${userName.toUpperCase()} (${shortId})`
+          : z.closedBy,
       };
     });
 
@@ -1261,15 +1440,26 @@ export class ReportsService {
 
     const formatMoney = (amount: number | null | undefined) => {
       const num = Number(amount) || 0;
-      return num.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return num.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     };
     const formatDate = (date: Date | string | null) => {
       if (!date) return 'N/A';
-      return new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+      return new Date(date).toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
     };
     const formatTime = (date: Date | string | null) => {
       if (!date) return 'N/A';
-      return new Date(date).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return new Date(date).toLocaleTimeString('en-PH', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
     };
     const padNum = (num: string, len: number) => num.padStart(len);
 
@@ -1279,14 +1469,18 @@ export class ReportsService {
       const device = z.posDevice || {};
       const branch = device?.branch || branchInfo || {};
 
-      report += '================================================================\n';
+      report +=
+        '================================================================\n';
       report += '                      Z - R E A D I N G\n';
       report += '              ( End of Day Sales Summary Report )\n';
-      report += '================================================================\n\n';
+      report +=
+        '================================================================\n\n';
 
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += '                    BUSINESS INFORMATION\n';
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += `Business Name      : ${storeInfo?.registeredName || storeInfo?.name || 'N/A'}\n`;
       report += `Address            : ${storeInfo?.registeredAddress || branch?.address || 'N/A'}\n`;
       report += `TIN                : ${storeInfo?.vatTin || 'N/A'}\n`;
@@ -1295,31 +1489,40 @@ export class ReportsService {
       report += `MIN                : ${device?.min || 'N/A'}\n`;
       report += `Serial No.         : ${device?.serialNumber || 'N/A'}\n\n`;
 
-      report += '================================================================\n';
+      report +=
+        '================================================================\n';
       report += '                    REPORT INFORMATION\n';
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += `Z-Reading No.      : ${String(z.zCounterNo).padStart(9, '0')}\n`;
       report += `Report Date        : ${formatDate(z.closedAt)}\n`;
       report += `Report Time        : ${formatTime(z.closedAt)}\n`;
       report += `Cashier/User       : ${z.closedByName || z.closedBy || 'SYSTEM'}\n`;
       report += `Branch             : ${branch?.name || 'N/A'}\n`;
       report += `Device             : ${device?.name || device?.deviceIdentifier || 'N/A'}\n`;
-      report += '================================================================\n\n';
+      report +=
+        '================================================================\n\n';
 
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += '                  TRANSACTION SUMMARY\n';
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += `Beginning OR No.   : ${z.beginningInvoiceNo}\n`;
       report += `Ending OR No.      : ${z.endingInvoiceNo}\n`;
       report += `Total Transactions : ${padNum(String(z.transactionCount), 10)}\n`;
       report += `Void Count         : ${padNum(String(z.voidCount), 10)}\n`;
       report += `Refund Count       : ${padNum(String(z.refundCount), 10)}\n\n`;
 
-      report += '================================================================\n';
+      report +=
+        '================================================================\n';
       report += '                    SALES BREAKDOWN\n';
-      report += '================================================================\n';
-      report += '                                                    AMOUNT (PHP)\n';
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '================================================================\n';
+      report +=
+        '                                                    AMOUNT (PHP)\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += `GROSS SALES                                     ${padNum(formatMoney(Number(z.grossSales)), 15)}\n\n`;
 
       report += `  VATable Sales                                 ${padNum(formatMoney(Number(z.vatableSales)), 15)}\n`;
@@ -1327,41 +1530,53 @@ export class ReportsService {
       report += `  VAT-Exempt Sales                              ${padNum(formatMoney(Number(z.vatExemptSales)), 15)}\n`;
       report += `  Zero-Rated Sales                              ${padNum(formatMoney(Number(z.zeroRatedSales)), 15)}\n\n`;
 
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += '                      DEDUCTIONS\n';
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += `  Refunds                                       ${padNum(formatMoney(Number(z.refundTotal)), 15)}\n`;
       report += `  Voids                                         ${padNum(formatMoney(Number(z.voidTotal)), 15)}\n`;
       report += `  Discounts                                     ${padNum(formatMoney(Number(z.discountTotal)), 15)}\n`;
-      report += '                                                ---------------\n';
-      const totalDeductions = Number(z.refundTotal) + Number(z.voidTotal) + Number(z.discountTotal);
+      report +=
+        '                                                ---------------\n';
+      const totalDeductions =
+        Number(z.refundTotal) + Number(z.voidTotal) + Number(z.discountTotal);
       report += `TOTAL DEDUCTIONS                                ${padNum(formatMoney(totalDeductions), 15)}\n\n`;
 
-      report += '================================================================\n';
+      report +=
+        '================================================================\n';
       report += `NET SALES                                       ${padNum(formatMoney(Number(z.netSales)), 15)}\n`;
-      report += '================================================================\n\n';
+      report +=
+        '================================================================\n\n';
 
-      report += '----------------------------------------------------------------\n';
+      report +=
+        '----------------------------------------------------------------\n';
       report += '                 ACCUMULATED TOTALS\n';
       report += '              ( Non-Resettable Counters )\n';
-      report += '================================================================\n';
+      report +=
+        '================================================================\n';
       report += `OLD GRAND TOTAL SALES                       ${padNum(formatMoney(Number(z.beginningGrandTotal)), 15)}\n`;
       report += `Today's Net Sales                           ${padNum(formatMoney(Number(z.netSales)), 15)}\n`;
-      report += '                                            -------------------\n';
+      report +=
+        '                                            -------------------\n';
       report += `NEW GRAND TOTAL SALES                       ${padNum(formatMoney(Number(z.endingGrandTotal)), 15)}\n\n`;
 
       report += `Z-Counter                                             ${padNum(String(z.zCounterNo), 10)}\n\n`;
 
-      report += '================================================================\n\n';
+      report +=
+        '================================================================\n\n';
       report += '         THIS SERVES AS YOUR Z-READING REPORT\n';
       report += '        THIS DOCUMENT IS SYSTEM-GENERATED AND\n';
       report += '            DOES NOT REQUIRE A SIGNATURE\n\n';
       report += '       *** END OF Z-READING REPORT ***\n\n';
       report += `Generated: ${formatDate(new Date())} ${formatTime(new Date())}\n\n`;
-      report += '================================================================\n';
+      report +=
+        '================================================================\n';
       report += '     THIS REPORT IS VALID FOR BIR AUDIT PURPOSES\n';
       report += '     RETAIN FOR A MINIMUM OF TEN (10) YEARS\n';
-      report += '================================================================\n\n\n';
+      report +=
+        '================================================================\n\n\n';
     }
 
     return report;
@@ -1370,7 +1585,10 @@ export class ReportsService {
   /**
    * Get sales breakdown by staff member
    */
-  async getSalesByStaff(storeId: string, dto: ReportQueryDto): Promise<StaffSalesDto[]> {
+  async getSalesByStaff(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<StaffSalesDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
@@ -1384,11 +1602,14 @@ export class ReportsService {
     });
 
     // Group by operatorId
-    const staffMap = new Map<string, {
-      orderCount: number;
-      gross: number;
-      discounts: number;
-    }>();
+    const staffMap = new Map<
+      string,
+      {
+        orderCount: number;
+        gross: number;
+        discounts: number;
+      }
+    >();
 
     for (const order of orders) {
       const opId = order.operatorId!;
@@ -1403,13 +1624,21 @@ export class ReportsService {
 
     // Resolve operator names in batch
     const operatorIds = Array.from(staffMap.keys());
-    const users = operatorIds.length > 0 ? await this.prisma.user.findMany({
-      where: { id: { in: operatorIds } },
-      select: { id: true, firstName: true, lastName: true },
-    }) : [];
-    const userMap = new Map(users.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+    const users =
+      operatorIds.length > 0
+        ? await this.prisma.user.findMany({
+            where: { id: { in: operatorIds } },
+            select: { id: true, firstName: true, lastName: true },
+          })
+        : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, `${u.firstName} ${u.lastName}`]),
+    );
 
-    const totalNet = Array.from(staffMap.values()).reduce((sum, s) => sum + (s.gross - s.discounts), 0);
+    const totalNet = Array.from(staffMap.values()).reduce(
+      (sum, s) => sum + (s.gross - s.discounts),
+      0,
+    );
 
     return Array.from(staffMap.entries())
       .map(([operatorId, data]) => {
@@ -1421,7 +1650,8 @@ export class ReportsService {
           grossSales: data.gross,
           discounts: data.discounts,
           netSales,
-          averageOrderValue: data.orderCount > 0 ? netSales / data.orderCount : 0,
+          averageOrderValue:
+            data.orderCount > 0 ? netSales / data.orderCount : 0,
           percentage: totalNet > 0 ? (netSales / totalNet) * 100 : 0,
         };
       })
@@ -1431,81 +1661,94 @@ export class ReportsService {
   /**
    * Get comprehensive staff performance metrics
    */
-  async getStaffPerformance(storeId: string, dto: ReportQueryDto): Promise<StaffPerformanceDto[]> {
+  async getStaffPerformance(
+    storeId: string,
+    dto: ReportQueryDto,
+  ): Promise<StaffPerformanceDto[]> {
     const { start, end } = this.getDateRange(dto);
     const storeFilter = this.buildStoreFilter(storeId, dto);
 
     // Run queries in parallel
-    const [completedOrders, voidedOrders, refunds, discounts, shifts] = await Promise.all([
-      // Completed orders by operator
-      this.prisma.order.findMany({
-        where: {
-          ...storeFilter,
-          status: OrderStatus.COMPLETED,
-          posCreatedAt: { gte: start, lte: end },
-          operatorId: { not: null },
-        },
-      }),
-      // Voided orders by operator
-      this.prisma.order.findMany({
-        where: {
-          ...storeFilter,
-          status: OrderStatus.VOIDED,
-          posCreatedAt: { gte: start, lte: end },
-          operatorId: { not: null },
-        },
-      }),
-      // Refunds by processedBy
-      this.prisma.refund.findMany({
-        where: {
-          order: storeFilter,
-          processedAt: { gte: start, lte: end },
-          processedBy: { not: null },
-        },
-      }),
-      // Discounts by appliedBy
-      this.prisma.orderDiscount.findMany({
-        where: {
-          order: {
+    const [completedOrders, voidedOrders, refunds, discounts, shifts] =
+      await Promise.all([
+        // Completed orders by operator
+        this.prisma.order.findMany({
+          where: {
             ...storeFilter,
             status: OrderStatus.COMPLETED,
             posCreatedAt: { gte: start, lte: end },
+            operatorId: { not: null },
           },
-          appliedBy: { not: null },
-        },
-      }),
-      // Shifts by operator (posOperatorId is always populated with portal user ID)
-      this.prisma.shift.findMany({
-        where: {
-          ...storeFilter,
-          openedAt: { gte: start, lte: end },
-        },
-      }),
-    ]);
+        }),
+        // Voided orders by operator
+        this.prisma.order.findMany({
+          where: {
+            ...storeFilter,
+            status: OrderStatus.VOIDED,
+            posCreatedAt: { gte: start, lte: end },
+            operatorId: { not: null },
+          },
+        }),
+        // Refunds by processedBy
+        this.prisma.refund.findMany({
+          where: {
+            order: storeFilter,
+            processedAt: { gte: start, lte: end },
+            processedBy: { not: null },
+          },
+        }),
+        // Discounts by appliedBy
+        this.prisma.orderDiscount.findMany({
+          where: {
+            order: {
+              ...storeFilter,
+              status: OrderStatus.COMPLETED,
+              posCreatedAt: { gte: start, lte: end },
+            },
+            appliedBy: { not: null },
+          },
+        }),
+        // Shifts by operator (posOperatorId is always populated with portal user ID)
+        this.prisma.shift.findMany({
+          where: {
+            ...storeFilter,
+            openedAt: { gte: start, lte: end },
+          },
+        }),
+      ]);
 
     // Build unified map per staff member
-    const staffMap = new Map<string, {
-      orderCount: number;
-      totalSales: number;
-      voidCount: number;
-      voidAmount: number;
-      refundCount: number;
-      refundAmount: number;
-      discountCount: number;
-      discountAmount: number;
-      shiftCount: number;
-      totalShiftMs: number;
-      cashVariance: number;
-    }>();
+    const staffMap = new Map<
+      string,
+      {
+        orderCount: number;
+        totalSales: number;
+        voidCount: number;
+        voidAmount: number;
+        refundCount: number;
+        refundAmount: number;
+        discountCount: number;
+        discountAmount: number;
+        shiftCount: number;
+        totalShiftMs: number;
+        cashVariance: number;
+      }
+    >();
 
     const ensureStaff = (id: string) => {
       if (!staffMap.has(id)) {
         staffMap.set(id, {
-          orderCount: 0, totalSales: 0,
-          voidCount: 0, voidAmount: 0,
-          refundCount: 0, refundAmount: 0,
-          discountCount: 0, discountAmount: 0,
-          shiftCount: 0, totalShiftMs: 0, cashVariance: 0,
+          orderCount: 0,
+          totalSales: 0,
+          voidCount: 0,
+          voidAmount: 0,
+          refundCount: 0,
+          refundAmount: 0,
+          discountCount: 0,
+          discountAmount: 0,
+          shiftCount: 0,
+          totalShiftMs: 0,
+          cashVariance: 0,
         });
       }
       return staffMap.get(id)!;
@@ -1539,18 +1782,25 @@ export class ReportsService {
       const staff = ensureStaff(shift.posOperatorId);
       staff.shiftCount++;
       if (shift.closedAt) {
-        staff.totalShiftMs += new Date(shift.closedAt).getTime() - new Date(shift.openedAt).getTime();
+        staff.totalShiftMs +=
+          new Date(shift.closedAt).getTime() -
+          new Date(shift.openedAt).getTime();
       }
       staff.cashVariance += Number(shift.variance || 0);
     }
 
     // Resolve names in batch
     const operatorIds = Array.from(staffMap.keys());
-    const users = operatorIds.length > 0 ? await this.prisma.user.findMany({
-      where: { id: { in: operatorIds } },
-      select: { id: true, firstName: true, lastName: true },
-    }) : [];
-    const userMap = new Map(users.map(u => [u.id, `${u.firstName} ${u.lastName}`]));
+    const users =
+      operatorIds.length > 0
+        ? await this.prisma.user.findMany({
+            where: { id: { in: operatorIds } },
+            select: { id: true, firstName: true, lastName: true },
+          })
+        : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, `${u.firstName} ${u.lastName}`]),
+    );
 
     return Array.from(staffMap.entries())
       .map(([operatorId, data]) => ({
@@ -1558,7 +1808,8 @@ export class ReportsService {
         operatorName: userMap.get(operatorId) || 'Unknown',
         orderCount: data.orderCount,
         totalSales: data.totalSales,
-        averageOrderValue: data.orderCount > 0 ? data.totalSales / data.orderCount : 0,
+        averageOrderValue:
+          data.orderCount > 0 ? data.totalSales / data.orderCount : 0,
         voidCount: data.voidCount,
         voidAmount: data.voidAmount,
         refundCount: data.refundCount,
@@ -1566,7 +1817,8 @@ export class ReportsService {
         discountCount: data.discountCount,
         discountAmount: data.discountAmount,
         shiftCount: data.shiftCount,
-        totalShiftHours: Math.round((data.totalShiftMs / (1000 * 60 * 60)) * 100) / 100,
+        totalShiftHours:
+          Math.round((data.totalShiftMs / (1000 * 60 * 60)) * 100) / 100,
         cashVariance: data.cashVariance,
       }))
       .sort((a, b) => b.totalSales - a.totalSales);
@@ -1576,15 +1828,20 @@ export class ReportsService {
    * Export data to CSV format
    */
   exportToCsv(data: any[], columns: { key: string; header: string }[]): string {
-    const headers = columns.map(c => c.header).join(',');
-    const rows = data.map(item =>
-      columns.map(c => {
-        const value = item[c.key];
-        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-          return `"${value.replace(/"/g, '""')}"`;
-        }
-        return value ?? '';
-      }).join(',')
+    const headers = columns.map((c) => c.header).join(',');
+    const rows = data.map((item) =>
+      columns
+        .map((c) => {
+          const value = item[c.key];
+          if (
+            typeof value === 'string' &&
+            (value.includes(',') || value.includes('"'))
+          ) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value ?? '';
+        })
+        .join(','),
     );
     return [headers, ...rows].join('\n');
   }

@@ -18,6 +18,11 @@ import { ShiftsModule } from './shifts/shifts.module';
 import { ReportsModule } from './reports/reports.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { FeatureFlagsModule } from './feature-flags/feature-flags.module';
+import { CloneModule } from './clone/clone.module';
+import { JobsModule } from './jobs/jobs.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { LossPreventionModule } from './loss-prevention/loss-prevention.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { PosDeviceGuard } from './common/guards';
 
@@ -42,6 +47,11 @@ import { PosDeviceGuard } from './common/guards';
     ReportsModule,
     InventoryModule,
     AlertsModule,
+    FeatureFlagsModule,
+    CloneModule,
+    JobsModule.forRoot(),
+    NotificationsModule,
+    LossPreventionModule,
   ],
   controllers: [AppController],
   providers: [

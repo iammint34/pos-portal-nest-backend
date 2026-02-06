@@ -1,0 +1,58 @@
+// POS Portal Backend - Shift & Cash Management Models
+// Shifts and cash movements (synced from POS)
+
+model Shift {
+  id            String      @id @default(uuid())
+  posShiftId    String      @map("pos_shift_id")
+  posDeviceId   String      @map("pos_device_id")
+  branchId      String      @map("branch_id")
+  storeId       String      @map("store_id")
+  operatorId    String?     @map("operator_id")
+  posOperatorId String      @map("pos_operator_id")
+  status        ShiftStatus @default(OPEN)
+  openedAt      DateTime    @map("opened_at")
+  closedAt      DateTime?   @map("closed_at")
+  openingCash   Decimal     @map("opening_cash") @db.Decimal(10, 2)
+  closingCash   Decimal?    @map("closing_cash") @db.Decimal(10, 2)
+  expectedCash  Decimal?    @map("expected_cash") @db.Decimal(10, 2)
+  variance      Decimal?    @db.Decimal(10, 2)
+  notes         String?     @db.Text
+  orderCount    Int         @default(0) @map("order_count")
+  syncedAt      DateTime    @default(now()) @map("synced_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  posDevice     PosDevice      @relation(fields: [posDeviceId], references: [id])
+  operator      User?          @relation(fields: [posOperatorId], references: [id])
+  cashMovements CashMovement[]
+  orders        Order[]
+
+  @@unique([posDeviceId, posShiftId])
+  @@index([branchId])
+  @@index([storeId])
+  @@index([operatorId])
+  @@index([posOperatorId])
+  @@index([status])
+  @@index([openedAt])
+  @@map("shifts")
+}
+
+model CashMovement {
+  id            String           @id @default(uuid())
+  shiftId       String           @map("shift_id")
+  movementType  CashMovementType @map("movement_type")
+  amount        Decimal          @db.Decimal(10, 2)
+  referenceType String?          @map("reference_type")
+  referenceId   String?          @map("reference_id")
+  reason        String?          @db.Text
+  performedBy   String           @map("performed_by")
+  performedAt   DateTime         @map("performed_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([shiftId])
+  @@map("cash_movements")
+}

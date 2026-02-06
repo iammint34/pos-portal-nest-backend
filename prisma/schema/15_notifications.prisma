@@ -1,0 +1,73 @@
+// POS Portal Backend - Notification Models
+// User preferences, delivery logs, and scheduling
+
+model NotificationPreference {
+  id            String   @id @default(uuid())
+  storeId       String   @map("store_id")
+  userId        String   @map("user_id")
+  emailEnabled  Boolean  @default(true) @map("email_enabled")
+  smsEnabled    Boolean  @default(false) @map("sms_enabled")
+  dailyDigest   Boolean  @default(true) @map("daily_digest")
+  weeklySummary Boolean  @default(false) @map("weekly_summary")
+  alertsEnabled Boolean  @default(true) @map("alerts_enabled")
+  email         String? // Override email (defaults to user email)
+  phone         String? // Phone number for SMS
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, userId])
+  @@index([storeId])
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+model NotificationLog {
+  id           String              @id @default(uuid())
+  storeId      String              @map("store_id")
+  userId       String?             @map("user_id")
+  type         NotificationType
+  channel      NotificationChannel
+  recipient    String // Email address or phone number
+  subject      String?
+  content      String              @db.Text
+  status       NotificationStatus  @default(PENDING)
+  errorMessage String?             @map("error_message") @db.Text
+  sentAt       DateTime?           @map("sent_at")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([storeId])
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("notification_logs")
+}
+
+model NotificationSchedule {
+  id        String           @id @default(uuid())
+  storeId   String           @map("store_id")
+  type      NotificationType
+  schedule  String // Cron expression: "0 20 * * *" for 8 PM daily
+  timezone  String           @default("Asia/Manila")
+  enabled   Boolean          @default(true)
+  lastRunAt DateTime?        @map("last_run_at")
+  nextRunAt DateTime?        @map("next_run_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, type])
+  @@index([storeId])
+  @@index([enabled, nextRunAt])
+  @@map("notification_schedules")
+}

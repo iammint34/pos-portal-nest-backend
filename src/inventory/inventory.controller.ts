@@ -43,7 +43,9 @@ export class InventoryController {
 
   @Post()
   @Permissions('inventory.create')
-  @ApiOperation({ summary: 'Create inventory tracking for an item at a branch' })
+  @ApiOperation({
+    summary: 'Create inventory tracking for an item at a branch',
+  })
   @ApiQuery({ name: 'storeId', required: false, description: 'Store ID' })
   createInventory(
     @Body() dto: CreateInventoryDto,
@@ -63,7 +65,9 @@ export class InventoryController {
 
   @Post('bulk')
   @Permissions('inventory.create')
-  @ApiOperation({ summary: 'Bulk create inventory tracking for multiple items at a branch' })
+  @ApiOperation({
+    summary: 'Bulk create inventory tracking for multiple items at a branch',
+  })
   bulkCreateInventory(
     @Body() dto: BulkCreateInventoryDto,
     @CurrentUser() user: CurrentUserData,
@@ -81,12 +85,28 @@ export class InventoryController {
   @Get()
   @Permissions('inventory.read')
   @ApiOperation({ summary: 'Get all inventory records' })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Filter by store ID' })
-  @ApiQuery({ name: 'branchId', required: false, description: 'Filter by branch' })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Filter by store ID',
+  })
+  @ApiQuery({
+    name: 'branchId',
+    required: false,
+    description: 'Filter by branch',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  @ApiQuery({ name: 'lowStockOnly', required: false, description: 'Only show low stock items' })
-  @ApiQuery({ name: 'search', required: false, description: 'Search by item name or SKU' })
+  @ApiQuery({
+    name: 'lowStockOnly',
+    required: false,
+    description: 'Only show low stock items',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search by item name or SKU',
+  })
   findAllInventory(
     @CurrentUser() user: CurrentUserData,
     @Query('storeId') storeId?: string,
@@ -112,8 +132,16 @@ export class InventoryController {
   @Get('low-stock')
   @Permissions('inventory.read')
   @ApiOperation({ summary: 'Get items below low stock threshold' })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Filter by store ID' })
-  @ApiQuery({ name: 'branchId', required: false, description: 'Filter by branch' })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Filter by store ID',
+  })
+  @ApiQuery({
+    name: 'branchId',
+    required: false,
+    description: 'Filter by branch',
+  })
   getLowStockItems(
     @CurrentUser() user: CurrentUserData,
     @Query('storeId') storeId?: string,
@@ -236,7 +264,8 @@ export class InventoryController {
   @ApiOperation({ summary: 'Sync inventory movement from POS device' })
   syncMovement(
     @Body() dto: SyncMovementDto,
-    @CurrentPosDevice() device: { deviceId: string; branchId: string; storeId: string },
+    @CurrentPosDevice()
+    device: { deviceId: string; branchId: string; storeId: string },
   ) {
     return this.inventoryService.syncMovement(
       device.storeId,

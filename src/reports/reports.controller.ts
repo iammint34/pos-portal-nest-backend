@@ -9,9 +9,20 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FastifyReply } from 'fastify';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
-import { Permissions, CurrentUser, CurrentUserData, PosDevice, CurrentPosDevice } from '../common/decorators';
+import {
+  Permissions,
+  CurrentUser,
+  CurrentUserData,
+  PosDevice,
+  CurrentPosDevice,
+} from '../common/decorators';
 import { PosDeviceGuard } from '../common/guards';
 import {
   ReportQueryDto,
@@ -37,7 +48,8 @@ export class ReportsController {
     @Query('storeId') storeId?: string,
   ) {
     const effectiveStoreId = user?.storeId || storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getDashboardStats(effectiveStoreId);
   }
 
@@ -51,7 +63,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesSummary(effectiveStoreId, dto);
   }
 
@@ -64,34 +77,44 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const data = await this.reportsService.getSalesSummary(effectiveStoreId, dto);
+    const data = await this.reportsService.getSalesSummary(
+      effectiveStoreId,
+      dto,
+    );
 
     if (dto.format === ExportFormat.CSV) {
-      const csv = this.reportsService.exportToCsv([data], [
-        { key: 'periodStart', header: 'Period Start' },
-        { key: 'periodEnd', header: 'Period End' },
-        { key: 'totalOrders', header: 'Total Orders' },
-        { key: 'completedOrders', header: 'Completed Orders' },
-        { key: 'voidedOrders', header: 'Voided Orders' },
-        { key: 'grossSales', header: 'Gross Sales' },
-        { key: 'totalDiscounts', header: 'Total Discounts' },
-        { key: 'totalRefunds', header: 'Total Refunds' },
-        { key: 'netSales', header: 'Net Sales' },
-        { key: 'totalTax', header: 'Total Tax' },
-        { key: 'vatableSales', header: 'VATable Sales' },
-        { key: 'vatAmount', header: 'VAT Amount' },
-        { key: 'vatExemptSales', header: 'VAT Exempt Sales' },
-        { key: 'zeroRatedSales', header: 'Zero Rated Sales' },
-        { key: 'cashSales', header: 'Cash Sales' },
-        { key: 'cardSales', header: 'Card Sales' },
-        { key: 'otherSales', header: 'Other Sales' },
-        { key: 'averageOrderValue', header: 'Average Order Value' },
-      ]);
+      const csv = this.reportsService.exportToCsv(
+        [data],
+        [
+          { key: 'periodStart', header: 'Period Start' },
+          { key: 'periodEnd', header: 'Period End' },
+          { key: 'totalOrders', header: 'Total Orders' },
+          { key: 'completedOrders', header: 'Completed Orders' },
+          { key: 'voidedOrders', header: 'Voided Orders' },
+          { key: 'grossSales', header: 'Gross Sales' },
+          { key: 'totalDiscounts', header: 'Total Discounts' },
+          { key: 'totalRefunds', header: 'Total Refunds' },
+          { key: 'netSales', header: 'Net Sales' },
+          { key: 'totalTax', header: 'Total Tax' },
+          { key: 'vatableSales', header: 'VATable Sales' },
+          { key: 'vatAmount', header: 'VAT Amount' },
+          { key: 'vatExemptSales', header: 'VAT Exempt Sales' },
+          { key: 'zeroRatedSales', header: 'Zero Rated Sales' },
+          { key: 'cashSales', header: 'Cash Sales' },
+          { key: 'cardSales', header: 'Card Sales' },
+          { key: 'otherSales', header: 'Other Sales' },
+          { key: 'averageOrderValue', header: 'Average Order Value' },
+        ],
+      );
 
       res.header('Content-Type', 'text/csv');
-      res.header('Content-Disposition', `attachment; filename=sales-summary-${dto.startDate || 'all'}.csv`);
+      res.header(
+        'Content-Disposition',
+        `attachment; filename=sales-summary-${dto.startDate || 'all'}.csv`,
+      );
       return res.send(csv);
     }
 
@@ -108,7 +131,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByBranch(effectiveStoreId, dto);
   }
 
@@ -121,9 +145,13 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const data = await this.reportsService.getSalesByBranch(effectiveStoreId, dto);
+    const data = await this.reportsService.getSalesByBranch(
+      effectiveStoreId,
+      dto,
+    );
 
     if (dto.format === ExportFormat.CSV) {
       const csv = this.reportsService.exportToCsv(data, [
@@ -137,7 +165,10 @@ export class ReportsController {
       ]);
 
       res.header('Content-Type', 'text/csv');
-      res.header('Content-Disposition', `attachment; filename=sales-by-branch-${dto.startDate || 'all'}.csv`);
+      res.header(
+        'Content-Disposition',
+        `attachment; filename=sales-by-branch-${dto.startDate || 'all'}.csv`,
+      );
       return res.send(csv);
     }
 
@@ -154,7 +185,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByDevice(effectiveStoreId, dto);
   }
 
@@ -168,7 +200,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByCategory(effectiveStoreId, dto);
   }
 
@@ -181,9 +214,13 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const data = await this.reportsService.getSalesByCategory(effectiveStoreId, dto);
+    const data = await this.reportsService.getSalesByCategory(
+      effectiveStoreId,
+      dto,
+    );
 
     if (dto.format === ExportFormat.CSV) {
       const csv = this.reportsService.exportToCsv(data, [
@@ -197,7 +234,10 @@ export class ReportsController {
       ]);
 
       res.header('Content-Type', 'text/csv');
-      res.header('Content-Disposition', `attachment; filename=sales-by-category-${dto.startDate || 'all'}.csv`);
+      res.header(
+        'Content-Disposition',
+        `attachment; filename=sales-by-category-${dto.startDate || 'all'}.csv`,
+      );
       return res.send(csv);
     }
 
@@ -214,7 +254,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByItem(effectiveStoreId, dto);
   }
 
@@ -227,9 +268,13 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const result = await this.reportsService.getSalesByItem(effectiveStoreId, { ...dto, limit: 10000 });
+    const result = await this.reportsService.getSalesByItem(effectiveStoreId, {
+      ...dto,
+      limit: 10000,
+    });
 
     if (dto.format === ExportFormat.CSV) {
       const csv = this.reportsService.exportToCsv(result.data, [
@@ -244,7 +289,10 @@ export class ReportsController {
       ]);
 
       res.header('Content-Type', 'text/csv');
-      res.header('Content-Disposition', `attachment; filename=sales-by-item-${dto.startDate || 'all'}.csv`);
+      res.header(
+        'Content-Disposition',
+        `attachment; filename=sales-by-item-${dto.startDate || 'all'}.csv`,
+      );
       return res.send(csv);
     }
 
@@ -256,15 +304,24 @@ export class ReportsController {
   @Get('sales/top-items')
   @Permissions('pos.read')
   @ApiOperation({ summary: 'Get top selling items' })
-  @ApiQuery({ name: 'top', required: false, description: 'Number of items (default 10)' })
+  @ApiQuery({
+    name: 'top',
+    required: false,
+    description: 'Number of items (default 10)',
+  })
   async getTopSellingItems(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ReportQueryDto,
     @Query('top') top?: number,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
-    return this.reportsService.getTopSellingItems(effectiveStoreId, dto, top || 10);
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
+    return this.reportsService.getTopSellingItems(
+      effectiveStoreId,
+      dto,
+      top || 10,
+    );
   }
 
   // ==================== SALES BY STAFF ====================
@@ -277,7 +334,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByStaff(effectiveStoreId, dto);
   }
 
@@ -290,9 +348,13 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const data = await this.reportsService.getSalesByStaff(effectiveStoreId, dto);
+    const data = await this.reportsService.getSalesByStaff(
+      effectiveStoreId,
+      dto,
+    );
 
     if (dto.format === ExportFormat.CSV) {
       const csv = this.reportsService.exportToCsv(data, [
@@ -306,7 +368,10 @@ export class ReportsController {
       ]);
 
       res.header('Content-Type', 'text/csv');
-      res.header('Content-Disposition', `attachment; filename=sales-by-staff-${dto.startDate || 'all'}.csv`);
+      res.header(
+        'Content-Disposition',
+        `attachment; filename=sales-by-staff-${dto.startDate || 'all'}.csv`,
+      );
       return res.send(csv);
     }
 
@@ -323,7 +388,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getStaffPerformance(effectiveStoreId, dto);
   }
 
@@ -337,7 +403,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByPaymentMethod(effectiveStoreId, dto);
   }
 
@@ -351,7 +418,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesByHour(effectiveStoreId, dto);
   }
 
@@ -365,7 +433,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getSalesTrend(effectiveStoreId, dto);
   }
 
@@ -379,7 +448,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getTransactions(effectiveStoreId, dto);
   }
 
@@ -392,9 +462,13 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const result = await this.reportsService.getTransactions(effectiveStoreId, { ...dto, limit: 10000 });
+    const result = await this.reportsService.getTransactions(effectiveStoreId, {
+      ...dto,
+      limit: 10000,
+    });
 
     if (dto.format === ExportFormat.CSV) {
       const csv = this.reportsService.exportToCsv(result.data, [
@@ -415,7 +489,10 @@ export class ReportsController {
       ]);
 
       res.header('Content-Type', 'text/csv');
-      res.header('Content-Disposition', `attachment; filename=transactions-${dto.startDate || 'all'}.csv`);
+      res.header(
+        'Content-Disposition',
+        `attachment; filename=transactions-${dto.startDate || 'all'}.csv`,
+      );
       return res.send(csv);
     }
 
@@ -432,7 +509,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getVoidedTransactions(effectiveStoreId, dto);
   }
 
@@ -446,7 +524,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getDiscountReport(effectiveStoreId, dto);
   }
 
@@ -460,7 +539,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getRefundReport(effectiveStoreId, dto);
   }
 
@@ -474,7 +554,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getShiftHistory(effectiveStoreId, dto);
   }
 
@@ -488,7 +569,8 @@ export class ReportsController {
     @Query() dto: ReportQueryDto,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
     return this.reportsService.getZReadingHistory(effectiveStoreId, dto);
   }
 
@@ -501,15 +583,26 @@ export class ReportsController {
     @Res() res: FastifyReply,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
-    if (!effectiveStoreId) throw new BadRequestException('Store ID is required');
+    if (!effectiveStoreId)
+      throw new BadRequestException('Store ID is required');
 
-    const result = await this.reportsService.getZReadingsForExport(effectiveStoreId, { ...dto, limit: 1000 });
+    const result = await this.reportsService.getZReadingsForExport(
+      effectiveStoreId,
+      { ...dto, limit: 1000 },
+    );
 
     // Generate BIR-compliant Z-Reading report text
-    const report = this.reportsService.generateZReadingReport(result.data, result.storeInfo, result.branchInfo);
+    const report = this.reportsService.generateZReadingReport(
+      result.data,
+      result.storeInfo,
+      result.branchInfo,
+    );
 
     res.header('Content-Type', 'text/plain; charset=utf-8');
-    res.header('Content-Disposition', `attachment; filename=z-reading-report-${dto.startDate || 'all'}.txt`);
+    res.header(
+      'Content-Disposition',
+      `attachment; filename=z-reading-report-${dto.startDate || 'all'}.txt`,
+    );
     return res.send(report);
   }
 
@@ -520,7 +613,13 @@ export class ReportsController {
   @UseGuards(PosDeviceGuard)
   @ApiOperation({ summary: 'Sync Z-Reading from POS device' })
   async syncZReading(
-    @CurrentPosDevice() device: { id: string; deviceIdentifier: string; branchId: string; storeId: string },
+    @CurrentPosDevice()
+    device: {
+      id: string;
+      deviceIdentifier: string;
+      branchId: string;
+      storeId: string;
+    },
     @Body() dto: SyncZReadingDto,
   ) {
     return this.reportsService.syncZReading(device.id, dto);

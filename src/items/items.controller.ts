@@ -51,7 +51,11 @@ export class ItemsController {
     if (!createItemDto.storeId) {
       throw new BadRequestException('Store ID is required');
     }
-    return this.itemsService.createItem(createItemDto.storeId, createItemDto, user.userId);
+    return this.itemsService.createItem(
+      createItemDto.storeId,
+      createItemDto,
+      user.userId,
+    );
   }
 
   @Get()

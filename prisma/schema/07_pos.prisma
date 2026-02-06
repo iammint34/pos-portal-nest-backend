@@ -1,0 +1,63 @@
+// POS Portal Backend - POS Device & Sync Models
+// Device management and synchronization
+
+model PosDevice {
+  id                        String    @id @default(uuid())
+  branchId                  String    @map("branch_id")
+  deviceIdentifier          String?   @unique @map("device_identifier")
+  name                      String?
+  appVersion                String?   @map("app_version")
+  status                    PosStatus @default(OFFLINE)
+  lastHeartbeatAt           DateTime? @map("last_heartbeat_at")
+  lastSyncAt                DateTime? @map("last_sync_at")
+  tokenHash                 String?   @map("token_hash")
+  tokenExpiresAt            DateTime? @map("token_expires_at")
+  // Registration code fields
+  registrationCode          String?   @unique @map("registration_code")
+  registrationCodeExpiresAt DateTime? @map("registration_code_expires_at")
+  isRegistered              Boolean   @default(false) @map("is_registered")
+  registeredAt              DateTime? @map("registered_at")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+  deletedAt                 DateTime? @map("deleted_at")
+
+  // BIR Compliance Fields
+  min          String? @db.VarChar(50)
+  serialNumber String? @map("serial_number") @db.VarChar(50)
+  permitNumber String? @map("permit_number") @db.VarChar(50)
+
+  // Relations
+  branch    Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  syncLogs  SyncLog[]
+  orders    Order[]
+  shifts    Shift[]
+  zReadings ZReading[]
+
+  // Enhancement Relations
+  lossPreventionIncidents LossPreventionIncident[]
+
+  @@index([branchId])
+  @@index([registrationCode])
+  @@map("pos_devices")
+}
+
+model SyncLog {
+  id          String     @id @default(uuid())
+  posDeviceId String     @map("pos_device_id")
+  syncType    SyncType   @map("sync_type")
+  status      SyncStatus
+  version     Int?
+  itemCount   Int?       @map("item_count")
+  errorMsg    String?    @map("error_msg") @db.Text
+  startedAt   DateTime   @map("started_at")
+  completedAt DateTime?  @map("completed_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  posDevice PosDevice @relation(fields: [posDeviceId], references: [id], onDelete: Cascade)
+
+  @@index([posDeviceId])
+  @@index([syncType])
+  @@index([createdAt])
+  @@map("sync_logs")
+}

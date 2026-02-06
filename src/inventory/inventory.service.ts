@@ -51,10 +51,14 @@ export class InventoryService {
 
     // Check if inventory tracking already exists
     const existing = await this.prisma.branchInventory.findUnique({
-      where: { itemId_branchId: { itemId: dto.itemId, branchId: dto.branchId } },
+      where: {
+        itemId_branchId: { itemId: dto.itemId, branchId: dto.branchId },
+      },
     });
     if (existing) {
-      throw new ConflictException('Inventory tracking already exists for this item/branch');
+      throw new ConflictException(
+        'Inventory tracking already exists for this item/branch',
+      );
     }
 
     const inventory = await this.prisma.branchInventory.create({
@@ -154,10 +158,7 @@ export class InventoryService {
       }),
       ...(search && {
         item: {
-          OR: [
-            { name: { contains: search } },
-            { sku: { contains: search } },
-          ],
+          OR: [{ name: { contains: search } }, { sku: { contains: search } }],
         },
       }),
     };
@@ -232,7 +233,10 @@ export class InventoryService {
       action: 'UPDATE',
       entityType: 'BranchInventory',
       entityId: id,
-      oldValue: { lowStockThreshold: inventory.lowStockThreshold, isTracked: inventory.isTracked },
+      oldValue: {
+        lowStockThreshold: inventory.lowStockThreshold,
+        isTracked: inventory.isTracked,
+      },
       newValue: dto,
     });
 
@@ -304,10 +308,16 @@ export class InventoryService {
       try {
         // Find inventory by item and branch
         const inventory = await this.prisma.branchInventory.findUnique({
-          where: { itemId_branchId: { itemId: item.itemId, branchId: dto.branchId } },
+          where: {
+            itemId_branchId: { itemId: item.itemId, branchId: dto.branchId },
+          },
         });
         if (!inventory) {
-          results.push({ itemId: item.itemId, success: false, error: 'Inventory not found' });
+          results.push({
+            itemId: item.itemId,
+            success: false,
+            error: 'Inventory not found',
+          });
           continue;
         }
 
@@ -323,7 +333,11 @@ export class InventoryService {
         );
         results.push({ itemId: item.itemId, success: true, ...result });
       } catch (error) {
-        results.push({ itemId: item.itemId, success: false, error: error.message });
+        results.push({
+          itemId: item.itemId,
+          success: false,
+          error: error.message,
+        });
       }
     }
     return results;
@@ -392,7 +406,11 @@ export class InventoryService {
       entityType: 'BranchInventory',
       entityId: dto.inventoryId,
       oldValue: { currentQuantity: previousQuantity },
-      newValue: { currentQuantity: newQuantity, adjustmentType: dto.adjustmentType, quantity: dto.quantity },
+      newValue: {
+        currentQuantity: newQuantity,
+        adjustmentType: dto.adjustmentType,
+        quantity: dto.quantity,
+      },
     });
 
     return { inventory: updatedInventory, movement };
@@ -449,23 +467,25 @@ export class InventoryService {
 
     // Filter items where currentQuantity <= lowStockThreshold
     return inventory.filter(
-      (inv) => inv.lowStockThreshold !== null && inv.currentQuantity <= inv.lowStockThreshold,
+      (inv) =>
+        inv.lowStockThreshold !== null &&
+        inv.currentQuantity <= inv.lowStockThreshold,
     );
   }
 
   // ========== POS Sync ==========
 
-  async syncMovement(
-    storeId: string,
-    branchId: string,
-    dto: SyncMovementDto,
-  ) {
+  async syncMovement(storeId: string, branchId: string, dto: SyncMovementDto) {
     // Check for idempotency - if movement already exists, return success
     const existing = await this.prisma.inventoryMovement.findUnique({
       where: { movementId: dto.movementId },
     });
     if (existing) {
-      return { success: true, message: 'Movement already synced', movement: existing };
+      return {
+        success: true,
+        message: 'Movement already synced',
+        movement: existing,
+      };
     }
 
     // Find the branch inventory for this item

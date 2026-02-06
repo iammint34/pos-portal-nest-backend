@@ -59,13 +59,22 @@ export class UsersService {
       action: 'CREATE',
       entityType: 'User',
       entityId: user.id,
-      newValue: { email: user.email, firstName: user.firstName, lastName: user.lastName },
+      newValue: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
     });
 
     return user;
   }
 
-  async findAll(storeId?: string, page = 1, limit = 20, excludeUserId?: string) {
+  async findAll(
+    storeId?: string,
+    page = 1,
+    limit = 20,
+    excludeUserId?: string,
+  ) {
     const where = {
       deletedAt: null,
       ...(excludeUserId && { id: { not: excludeUserId } }),

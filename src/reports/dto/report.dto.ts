@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsDateString, IsInt, Min, IsEnum, IsNumber } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsInt,
+  Min,
+  IsEnum,
+  IsNumber,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export enum ExportFormat {
@@ -21,7 +29,9 @@ export class DateRangeDto {
 }
 
 export class ReportQueryDto extends DateRangeDto {
-  @ApiPropertyOptional({ description: 'Store ID (optional for multi-store owners)' })
+  @ApiPropertyOptional({
+    description: 'Store ID (optional for multi-store owners)',
+  })
   @IsOptional()
   @IsString()
   storeId?: string;
@@ -50,7 +60,10 @@ export class ReportQueryDto extends DateRangeDto {
   @Min(1)
   limit?: number = 50;
 
-  @ApiPropertyOptional({ description: 'Number of top items to return (for top-items endpoint)', default: 10 })
+  @ApiPropertyOptional({
+    description: 'Number of top items to return (for top-items endpoint)',
+    default: 10,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

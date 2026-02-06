@@ -17,7 +17,13 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { PosService } from './pos.service';
-import { RegisterPosDto, UpdatePosDto, PosAuthDto, CreatePosDeviceDto, RegisterWithCodeDto } from './dto';
+import {
+  RegisterPosDto,
+  UpdatePosDto,
+  PosAuthDto,
+  CreatePosDeviceDto,
+  RegisterWithCodeDto,
+} from './dto';
 import {
   Permissions,
   CurrentUser,
@@ -46,7 +52,10 @@ export class PosController {
   @Public()
   @Post('register-with-code')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Register POS device using registration code (called from POS device)' })
+  @ApiOperation({
+    summary:
+      'Register POS device using registration code (called from POS device)',
+  })
   registerWithCode(@Body() registerDto: RegisterWithCodeDto) {
     return this.posService.registerWithCode(registerDto);
   }
@@ -55,7 +64,9 @@ export class PosController {
   @ApiBearerAuth('JWT-auth')
   @Permissions('pos.manage')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Regenerate registration code for an unregistered device' })
+  @ApiOperation({
+    summary: 'Regenerate registration code for an unregistered device',
+  })
   regenerateCode(
     @Param('id') id: string,
     @CurrentUser() user: CurrentUserData,
@@ -66,7 +77,9 @@ export class PosController {
   @Post('register')
   @ApiBearerAuth('JWT-auth')
   @Permissions('pos.manage')
-  @ApiOperation({ summary: 'Register a new POS device (legacy - direct registration)' })
+  @ApiOperation({
+    summary: 'Register a new POS device (legacy - direct registration)',
+  })
   register(
     @Body() registerPosDto: RegisterPosDto,
     @CurrentUser() user: CurrentUserData,

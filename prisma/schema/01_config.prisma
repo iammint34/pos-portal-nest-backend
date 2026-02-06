@@ -1,0 +1,11 @@
+// POS Portal Backend - Prisma Configuration
+// This file contains generator and datasource configuration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}

@@ -144,11 +144,7 @@ export class StoresService {
     });
   }
 
-  async update(
-    id: string,
-    updateStoreDto: UpdateStoreDto,
-    updatedBy?: string,
-  ) {
+  async update(id: string, updateStoreDto: UpdateStoreDto, updatedBy?: string) {
     const store = await this.findOne(id);
 
     const updatedStore = await this.prisma.store.update({

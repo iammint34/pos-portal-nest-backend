@@ -115,7 +115,10 @@ export class SyncShiftDto {
   @IsString()
   notes?: string;
 
-  @ApiProperty({ type: [SyncCashMovementDto], description: 'Cash movements during shift' })
+  @ApiProperty({
+    type: [SyncCashMovementDto],
+    description: 'Cash movements during shift',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SyncCashMovementDto)

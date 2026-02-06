@@ -35,7 +35,10 @@ export class CreateInventoryDto {
   @Min(0)
   lowStockThreshold?: number;
 
-  @ApiPropertyOptional({ description: 'Whether to track inventory for this item', default: true })
+  @ApiPropertyOptional({
+    description: 'Whether to track inventory for this item',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   isTracked?: boolean;
@@ -47,12 +50,17 @@ export class BulkCreateInventoryDto {
   @IsNotEmpty()
   branchId: string;
 
-  @ApiProperty({ description: 'Array of item IDs to create inventory for', type: [String] })
+  @ApiProperty({
+    description: 'Array of item IDs to create inventory for',
+    type: [String],
+  })
   @IsArray()
   @IsUUID('4', { each: true })
   itemIds: string[];
 
-  @ApiPropertyOptional({ description: 'Default low stock threshold for all items' })
+  @ApiPropertyOptional({
+    description: 'Default low stock threshold for all items',
+  })
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -66,7 +74,9 @@ export class UpdateInventoryDto {
   @Min(0)
   lowStockThreshold?: number;
 
-  @ApiPropertyOptional({ description: 'Whether to track inventory for this item' })
+  @ApiPropertyOptional({
+    description: 'Whether to track inventory for this item',
+  })
   @IsOptional()
   @IsBoolean()
   isTracked?: boolean;

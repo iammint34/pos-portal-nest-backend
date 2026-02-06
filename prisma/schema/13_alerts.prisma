@@ -1,0 +1,40 @@
+// POS Portal Backend - Alert Models
+// Exception monitoring and notifications
+
+model Alert {
+  id             String        @id @default(uuid())
+  storeId        String        @map("store_id")
+  type           AlertType
+  severity       AlertSeverity
+  title          String        @db.VarChar(255)
+  message        String        @db.Text
+  metadata       Json?
+  acknowledgedAt DateTime?     @map("acknowledged_at")
+  acknowledgedBy String?       @map("acknowledged_by")
+  dismissedAt    DateTime?     @map("dismissed_at")
+  dismissedBy    String?       @map("dismissed_by")
+  resolvedAt     DateTime?     @map("resolved_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@index([storeId])
+  @@index([type])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([storeId, type, createdAt])
+  @@map("alerts")
+}
+
+model AlertConfig {
+  id              String    @id @default(uuid())
+  storeId         String    @map("store_id")
+  alertType       AlertType @map("alert_type")
+  enabled         Boolean   @default(true)
+  thresholds      Json?
+  cooldownMinutes Int       @default(60) @map("cooldown_minutes")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([storeId, alertType])
+  @@map("alert_configs")
+}

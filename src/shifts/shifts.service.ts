@@ -270,7 +270,7 @@ export class ShiftsService {
       },
     });
 
-    let totalShifts = shifts.length;
+    const totalShifts = shifts.length;
     let closedShifts = 0;
     let totalOpeningCash = 0;
     let totalClosingCash = 0;

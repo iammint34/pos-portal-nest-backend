@@ -58,7 +58,9 @@ export class SyncMovementDto {
   @IsString()
   referenceId?: string;
 
-  @ApiPropertyOptional({ description: 'POS Device ID that created the movement' })
+  @ApiPropertyOptional({
+    description: 'POS Device ID that created the movement',
+  })
   @IsOptional()
   @IsString()
   posDeviceId?: string;

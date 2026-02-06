@@ -1,0 +1,285 @@
+// POS Portal Backend - Enums
+// Shared enumerations used across multiple models
+
+// =====================
+// Store Enums
+// =====================
+
+enum StoreType {
+  RESTAURANT
+  RETAIL
+  CAFE
+  OTHER
+}
+
+enum StoreStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum BranchStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+}
+
+// =====================
+// POS & Sync Enums
+// =====================
+
+enum PosStatus {
+  ONLINE
+  OFFLINE
+  INACTIVE
+}
+
+enum SyncType {
+  CONFIG
+  ITEMS
+  CATEGORIES
+  FULL
+  HEARTBEAT
+}
+
+enum SyncStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+// =====================
+// Sales Enums
+// =====================
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  VOIDED
+  REFUNDED
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEOUT
+  DELIVERY
+  DRIVE_THRU
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  MOBILE_PAYMENT
+  GIFT_CARD
+  STORE_CREDIT
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum DiscountScope {
+  ORDER
+  ITEM
+}
+
+// =====================
+// Shift Enums
+// =====================
+
+enum ShiftStatus {
+  OPEN
+  CLOSED
+}
+
+enum CashMovementType {
+  OPENING_FLOAT
+  CASH_SALE
+  CHANGE_GIVEN
+  TIP_CASH
+  PAID_OUT
+  DROP
+  CASH_IN
+  REFUND
+  CLOSING_COUNT
+}
+
+// =====================
+// Inventory Enums
+// =====================
+
+enum MovementType {
+  RECEIVED
+  SOLD
+  ADJUSTED_UP
+  ADJUSTED_DOWN
+  WASTED
+  VOIDED_SALE
+  REFUNDED
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+// =====================
+// Audit Enums
+// =====================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  SYNC
+  REGISTER
+}
+
+// =====================
+// Alert Enums
+// =====================
+
+enum AlertType {
+  ZERO_SALES_BRANCH
+  EXCESSIVE_VOID_REFUND
+  INVENTORY_ANOMALY
+  POS_SYNC_FAILURE
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// =====================
+// Feature Flag Enums
+// =====================
+
+enum FeatureKey {
+  LOSS_PREVENTION
+  NOTIFICATIONS
+  DAILY_DIGEST
+  STORE_CLONING
+  MENU_ANALYTICS
+  INCIDENT_TIMELINE
+  FRANCHISE_CONTROL
+  POS_RECOVERY
+  SYNC_ASSURANCE
+}
+
+// =====================
+// Notification Enums
+// =====================
+
+enum NotificationType {
+  DAILY_DIGEST
+  WEEKLY_SUMMARY
+  LOSS_PREVENTION_ALERT
+  DEVICE_OFFLINE
+  SYNC_FAILURE
+  SYSTEM_ALERT
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+}
+
+// =====================
+// Loss Prevention Enums
+// =====================
+
+enum LossPreventionMetricType {
+  VOID_COUNT
+  VOID_AMOUNT
+  REFUND_COUNT
+  REFUND_AMOUNT
+  DISCOUNT_PERCENTAGE
+  CONSECUTIVE_VOIDS
+}
+
+enum LossPreventionTimeWindow {
+  SHIFT
+  DAY
+  WEEK
+}
+
+enum LossPreventionScope {
+  STAFF
+  BRANCH
+  DEVICE
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  ESCALATED
+}
+
+// =====================
+// Clone Enums
+// =====================
+
+enum CloneType {
+  STORE
+  BRANCH
+}
+
+enum CloneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
+
+// =====================
+// Background Job Enums
+// =====================
+
+enum JobType {
+  DAILY_DIGEST
+  WEEKLY_SUMMARY
+  ALERT_NOTIFICATION
+  CLONE_STORE
+  CLONE_BRANCH
+  REPORT_GENERATION
+  DATA_EXPORT
+  SYNC_CLEANUP
+  CUSTOM
+}
+
+enum JobStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  RETRYING
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}

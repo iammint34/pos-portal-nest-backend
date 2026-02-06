@@ -35,11 +35,13 @@ export class ShiftsController {
   @PosDevice()
   @ApiOperation({
     summary: 'Sync a shift from POS (idempotent)',
-    description: 'Syncs shift data from POS device. Safe to retry - duplicate shifts are detected by posShiftId.',
+    description:
+      'Syncs shift data from POS device. Safe to retry - duplicate shifts are detected by posShiftId.',
   })
   async syncShift(
     @Body() dto: SyncShiftDto,
-    @CurrentPosDevice() device: { id: string; branchId: string; storeId: string },
+    @CurrentPosDevice()
+    device: { id: string; branchId: string; storeId: string },
   ): Promise<SyncShiftResult> {
     return this.shiftsService.syncShift(
       device.id,
@@ -57,13 +59,25 @@ export class ShiftsController {
     summary: 'Get shifts with filtering',
     description: 'Retrieve shifts for the current store with optional filters.',
   })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Filter by store ID (owners only)' })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Filter by store ID (owners only)',
+  })
   @ApiQuery({ name: 'branchId', required: false })
   @ApiQuery({ name: 'posDeviceId', required: false })
   @ApiQuery({ name: 'operatorId', required: false })
   @ApiQuery({ name: 'status', required: false, enum: ShiftStatus })
-  @ApiQuery({ name: 'startDate', required: false, description: 'Filter shifts from this date (ISO string)' })
-  @ApiQuery({ name: 'endDate', required: false, description: 'Filter shifts until this date (ISO string)' })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: 'Filter shifts from this date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'Filter shifts until this date (ISO string)',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async getShifts(
@@ -100,7 +114,8 @@ export class ShiftsController {
   @Permissions('pos.read')
   @ApiOperation({
     summary: 'Get shifts summary for a period',
-    description: 'Returns aggregated shift data including variances and totals.',
+    description:
+      'Returns aggregated shift data including variances and totals.',
   })
   @ApiQuery({ name: 'storeId', required: false })
   @ApiQuery({ name: 'branchId', required: false })
@@ -138,7 +153,11 @@ export class ShiftsController {
   })
   @ApiQuery({ name: 'storeId', required: false })
   @ApiQuery({ name: 'branchId', required: false })
-  @ApiQuery({ name: 'minVariance', required: false, description: 'Minimum absolute variance to include' })
+  @ApiQuery({
+    name: 'minVariance',
+    required: false,
+    description: 'Minimum absolute variance to include',
+  })
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
   @ApiQuery({ name: 'page', required: false })

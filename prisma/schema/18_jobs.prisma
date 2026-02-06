@@ -1,0 +1,64 @@
+// POS Portal Backend - Background Jobs
+// Generic job queue tracking for async operations
+
+model BackgroundJob {
+  id            String      @id @default(uuid())
+  storeId       String?     @map("store_id") // Optional - some jobs are system-wide
+  type          JobType
+  name          String      // Human-readable job name
+  payload       Json?       // Job-specific data
+  result        Json?       // Result data after completion
+  status        JobStatus   @default(PENDING)
+  priority      JobPriority @default(NORMAL)
+  progress      Int         @default(0) // 0-100 percentage
+  errorMessage  String?     @map("error_message") @db.Text
+  errorStack    String?     @map("error_stack") @db.Text
+  attempts      Int         @default(0)
+  maxAttempts   Int         @default(3) @map("max_attempts")
+  scheduledFor  DateTime?   @map("scheduled_for") // For delayed/scheduled jobs
+  startedAt     DateTime?   @map("started_at")
+  completedAt   DateTime?   @map("completed_at")
+  createdBy     String?     @map("created_by")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  store   Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  creator User?  @relation(fields: [createdBy], references: [id])
+
+  @@index([storeId])
+  @@index([type])
+  @@index([status])
+  @@index([priority])
+  @@index([scheduledFor])
+  @@index([createdAt])
+  @@map("background_jobs")
+}
+
+// Job Schedule - for recurring jobs
+model JobSchedule {
+  id          String    @id @default(uuid())
+  storeId     String?   @map("store_id") // Optional - some schedules are system-wide
+  type        JobType
+  name        String    // Human-readable name
+  cronExpr    String    @map("cron_expr") // Cron expression (e.g., "0 9 * * *")
+  timezone    String    @default("Asia/Manila") // Timezone for schedule
+  payload     Json?     // Default payload for each job run
+  isActive    Boolean   @default(true) @map("is_active")
+  lastRunAt   DateTime? @map("last_run_at")
+  nextRunAt   DateTime? @map("next_run_at")
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  store   Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  creator User?  @relation(fields: [createdBy], references: [id])
+
+  @@unique([storeId, type, name])
+  @@index([storeId])
+  @@index([type])
+  @@index([isActive])
+  @@index([nextRunAt])
+  @@map("job_schedules")
+}

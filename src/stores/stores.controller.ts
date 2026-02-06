@@ -8,10 +8,19 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { StoresService } from './stores.service';
 import { CreateStoreDto, UpdateStoreDto } from './dto';
-import { Permissions, CurrentUser, CurrentUserData } from '../common/decorators';
+import {
+  Permissions,
+  CurrentUser,
+  CurrentUserData,
+} from '../common/decorators';
 
 @ApiTags('stores')
 @Controller('stores')

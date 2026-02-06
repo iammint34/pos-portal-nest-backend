@@ -1,0 +1,47 @@
+// POS Portal Backend - Authentication Models
+// User accounts and authentication tokens
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  storeUsers    StoreUser[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  shifts        Shift[]
+
+  // Enhancement Relations
+  notificationPreferences NotificationPreference[]
+  notificationLogs        NotificationLog[]
+  incidentsAsStaff        LossPreventionIncident[] @relation("IncidentStaff")
+  incidentsResolved       LossPreventionIncident[] @relation("IncidentResolver")
+  cloneJobs               CloneJob[]
+  backgroundJobs          BackgroundJob[]
+  jobSchedules            JobSchedule[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(500)
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}

@@ -131,14 +131,20 @@ export class SyncService {
       // Get BIR configuration from store, branch, and device
       const birConfig = {
         // Store-level BIR info
-        registeredName: posDevice.branch.store.registeredName || posDevice.branch.store.name,
-        registeredAddress: posDevice.branch.store.registeredAddress || posDevice.branch.store.address || '',
+        registeredName:
+          posDevice.branch.store.registeredName || posDevice.branch.store.name,
+        registeredAddress:
+          posDevice.branch.store.registeredAddress ||
+          posDevice.branch.store.address ||
+          '',
         vatTin: posDevice.branch.store.vatTin || '',
         isVatRegistered: posDevice.branch.store.isVatRegistered ?? true,
         // Branch-level PTU info
         ptuNo: posDevice.branch.ptuNo || '',
-        ptuDateIssued: posDevice.branch.ptuDateIssued?.toISOString().split('T')[0] || '',
-        ptuValidUntil: posDevice.branch.ptuValidUntil?.toISOString().split('T')[0] || '',
+        ptuDateIssued:
+          posDevice.branch.ptuDateIssued?.toISOString().split('T')[0] || '',
+        ptuValidUntil:
+          posDevice.branch.ptuValidUntil?.toISOString().split('T')[0] || '',
         accreditationNo: posDevice.branch.accreditationNo || '',
         // Device-level MIN info
         min: posDevice.min || '',
@@ -243,7 +249,13 @@ export class SyncService {
     let users: SyncUserDto[] | null = null;
     let categories: SyncCategoryDto[] | null = null;
     let items: SyncItemDto[] | null = null;
-    let inventory: Array<{ id: string; itemId: string; currentQuantity: number; lowStockThreshold: number | null; isTracked: boolean }> | null = null;
+    let inventory: Array<{
+      id: string;
+      itemId: string;
+      currentQuantity: number;
+      lowStockThreshold: number | null;
+      isTracked: boolean;
+    }> | null = null;
     let deletedUsers: DeletedRecordDto[] | null = null;
     let deletedCategories: DeletedRecordDto[] | null = null;
     let deletedItems: DeletedRecordDto[] | null = null;
@@ -293,9 +305,10 @@ export class SyncService {
         );
 
         // Collect POS-specific permission codes for fine-grained feature gating
-        const permissionCodes = su.role?.rolePermissions
-          ?.map((rp) => rp.permission.code)
-          .filter((code) => code.startsWith('pos_function.')) ?? [];
+        const permissionCodes =
+          su.role?.rolePermissions
+            ?.map((rp) => rp.permission.code)
+            .filter((code) => code.startsWith('pos_function.')) ?? [];
 
         return {
           id: su.user.id,

@@ -9,7 +9,12 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterPosDto, UpdatePosDto, CreatePosDeviceDto, RegisterWithCodeDto } from './dto';
+import {
+  RegisterPosDto,
+  UpdatePosDto,
+  CreatePosDeviceDto,
+  RegisterWithCodeDto,
+} from './dto';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
@@ -58,7 +63,9 @@ export class PosService {
     }
 
     // Code expires in 24 hours
-    const registrationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const registrationCodeExpiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000,
+    );
 
     const posDevice = await this.prisma.posDevice.create({
       data: {
@@ -125,7 +132,10 @@ export class PosService {
       throw new ConflictException('Device has already been registered');
     }
 
-    if (posDevice.registrationCodeExpiresAt && new Date() > posDevice.registrationCodeExpiresAt) {
+    if (
+      posDevice.registrationCodeExpiresAt &&
+      new Date() > posDevice.registrationCodeExpiresAt
+    ) {
       throw new BadRequestException('Registration code has expired');
     }
 
@@ -135,7 +145,9 @@ export class PosService {
         where: { deviceIdentifier: registerDto.deviceIdentifier },
       });
       if (existingDevice && existingDevice.id !== posDevice.id) {
-        throw new ConflictException('Device identifier already registered to another device');
+        throw new ConflictException(
+          'Device identifier already registered to another device',
+        );
       }
     }
 
@@ -145,7 +157,9 @@ export class PosService {
     const expirationDays = parseInt(
       this.configService.get('DEVICE_TOKEN_EXPIRATION', '30d').replace('d', ''),
     );
-    const tokenExpiresAt = new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000);
+    const tokenExpiresAt = new Date(
+      Date.now() + expirationDays * 24 * 60 * 60 * 1000,
+    );
 
     // Update device with registration info
     const updatedDevice = await this.prisma.posDevice.update({
@@ -196,11 +210,15 @@ export class PosService {
     const posDevice = await this.findOne(id, storeId);
 
     if (posDevice.isRegistered) {
-      throw new BadRequestException('Cannot regenerate code for a registered device');
+      throw new BadRequestException(
+        'Cannot regenerate code for a registered device',
+      );
     }
 
     const registrationCode = this.generateRegistrationCode();
-    const registrationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const registrationCodeExpiresAt = new Date(
+      Date.now() + 24 * 60 * 60 * 1000,
+    );
 
     const updatedDevice = await this.prisma.posDevice.update({
       where: { id },

@@ -1,4 +1,10 @@
-import { IsOptional, IsBoolean, IsNumber, IsObject, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  IsObject,
+  Min,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateAlertConfigDto {

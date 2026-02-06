@@ -17,10 +17,10 @@ export class PosDeviceGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPosDevice = this.reflector.getAllAndOverride<boolean>(POS_DEVICE_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const isPosDevice = this.reflector.getAllAndOverride<boolean>(
+      POS_DEVICE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // If not marked as POS device endpoint, skip this guard
     if (!isPosDevice) {
@@ -38,13 +38,17 @@ export class PosDeviceGuard implements CanActivate {
     const [type, credentials] = authHeader.split(' ');
 
     if (type !== 'PosDevice' || !credentials) {
-      throw new UnauthorizedException('Invalid authorization format. Expected: PosDevice <deviceIdentifier>:<deviceToken>');
+      throw new UnauthorizedException(
+        'Invalid authorization format. Expected: PosDevice <deviceIdentifier>:<deviceToken>',
+      );
     }
 
     const [deviceIdentifier, deviceToken] = credentials.split(':');
 
     if (!deviceIdentifier || !deviceToken) {
-      throw new UnauthorizedException('Invalid credentials format. Expected: <deviceIdentifier>:<deviceToken>');
+      throw new UnauthorizedException(
+        'Invalid credentials format. Expected: <deviceIdentifier>:<deviceToken>',
+      );
     }
 
     // Validate device and token
@@ -68,11 +72,15 @@ export class PosDeviceGuard implements CanActivate {
     }
 
     if (!posDevice.tokenHash) {
-      throw new UnauthorizedException('Device not authenticated. Please authenticate first.');
+      throw new UnauthorizedException(
+        'Device not authenticated. Please authenticate first.',
+      );
     }
 
     if (posDevice.tokenExpiresAt && new Date() > posDevice.tokenExpiresAt) {
-      throw new UnauthorizedException('Device token expired. Please re-authenticate.');
+      throw new UnauthorizedException(
+        'Device token expired. Please re-authenticate.',
+      );
     }
 
     const isValidToken = await bcrypt.compare(deviceToken, posDevice.tokenHash);

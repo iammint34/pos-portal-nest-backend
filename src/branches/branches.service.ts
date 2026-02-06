@@ -23,8 +23,12 @@ export class BranchesService {
         phone: createBranchDto.phone,
         // BIR PTU fields
         ptuNo: createBranchDto.ptuNo,
-        ptuDateIssued: createBranchDto.ptuDateIssued ? new Date(createBranchDto.ptuDateIssued) : null,
-        ptuValidUntil: createBranchDto.ptuValidUntil ? new Date(createBranchDto.ptuValidUntil) : null,
+        ptuDateIssued: createBranchDto.ptuDateIssued
+          ? new Date(createBranchDto.ptuDateIssued)
+          : null,
+        ptuValidUntil: createBranchDto.ptuValidUntil
+          ? new Date(createBranchDto.ptuValidUntil)
+          : null,
         accreditationNo: createBranchDto.accreditationNo,
       },
     });
@@ -128,10 +132,14 @@ export class BranchesService {
     // Transform date strings to Date objects for Prisma
     const data: Record<string, unknown> = { ...updateBranchDto };
     if (updateBranchDto.ptuDateIssued !== undefined) {
-      data.ptuDateIssued = updateBranchDto.ptuDateIssued ? new Date(updateBranchDto.ptuDateIssued) : null;
+      data.ptuDateIssued = updateBranchDto.ptuDateIssued
+        ? new Date(updateBranchDto.ptuDateIssued)
+        : null;
     }
     if (updateBranchDto.ptuValidUntil !== undefined) {
-      data.ptuValidUntil = updateBranchDto.ptuValidUntil ? new Date(updateBranchDto.ptuValidUntil) : null;
+      data.ptuValidUntil = updateBranchDto.ptuValidUntil
+        ? new Date(updateBranchDto.ptuValidUntil)
+        : null;
     }
 
     const updatedBranch = await this.prisma.branch.update({

@@ -9,7 +9,12 @@ import {
   Query,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { RbacService } from './rbac.service';
 import { CreateRoleDto, UpdateRoleDto } from './dto';
 import {
@@ -53,17 +58,20 @@ export class RbacController {
     if (!storeId) {
       throw new BadRequestException('Store ID is required');
     }
-    return this.rbacService.createRole(
-      storeId,
-      createRoleDto,
-      user.userId,
-    );
+    return this.rbacService.createRole(storeId, createRoleDto, user.userId);
   }
 
   @Get('roles')
   @Permissions('role.read')
-  @ApiOperation({ summary: 'Get all roles. If user has storeId, filters by store. Owners can see all or filter by storeId query param.' })
-  @ApiQuery({ name: 'storeId', required: false, description: 'Filter by store ID (owners only)' })
+  @ApiOperation({
+    summary:
+      'Get all roles. If user has storeId, filters by store. Owners can see all or filter by storeId query param.',
+  })
+  @ApiQuery({
+    name: 'storeId',
+    required: false,
+    description: 'Filter by store ID (owners only)',
+  })
   getRoles(
     @CurrentUser() user: CurrentUserData,
     @Query('storeId') storeId?: string,

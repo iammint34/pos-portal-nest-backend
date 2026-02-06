@@ -21,10 +21,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     // Skip JWT auth for POS device endpoints (handled by PosDeviceGuard)
-    const isPosDevice = this.reflector.getAllAndOverride<boolean>(POS_DEVICE_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const isPosDevice = this.reflector.getAllAndOverride<boolean>(
+      POS_DEVICE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     if (isPosDevice) {
       return true;

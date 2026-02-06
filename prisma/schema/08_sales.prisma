@@ -1,0 +1,156 @@
+// POS Portal Backend - Sales Models
+// Orders, payments, and refunds (synced from POS)
+
+model Order {
+  id            String      @id @default(uuid())
+  posOrderId    String      @map("pos_order_id")
+  posDeviceId   String      @map("pos_device_id")
+  branchId      String      @map("branch_id")
+  storeId       String      @map("store_id")
+  shiftId       String?     @map("shift_id")
+  operatorId    String?     @map("operator_id")
+  posOperatorId String?     @map("pos_operator_id")
+  orderNumber   String      @map("order_number")
+  invoiceNumber String?     @map("invoice_number")
+  orderType     OrderType   @default(DINE_IN) @map("order_type")
+  status        OrderStatus @default(COMPLETED)
+  subtotal      Decimal     @db.Decimal(10, 2)
+  discountTotal Decimal     @default(0) @map("discount_total") @db.Decimal(10, 2)
+  taxTotal      Decimal     @default(0) @map("tax_total") @db.Decimal(10, 2)
+  grandTotal    Decimal     @map("grand_total") @db.Decimal(10, 2)
+
+  // BIR VAT Breakdown
+  vatableSales   Decimal @default(0) @map("vatable_sales") @db.Decimal(10, 2)
+  vatAmount      Decimal @default(0) @map("vat_amount") @db.Decimal(10, 2)
+  vatExemptSales Decimal @default(0) @map("vat_exempt_sales") @db.Decimal(10, 2)
+  zeroRatedSales Decimal @default(0) @map("zero_rated_sales") @db.Decimal(10, 2)
+
+  // Customer Info
+  customerName  String? @map("customer_name")
+  customerPhone String? @map("customer_phone")
+
+  // B2B Customer Info (for claiming input tax)
+  customerTin             String? @map("customer_tin") @db.VarChar(20)
+  customerBusinessName    String? @map("customer_business_name") @db.VarChar(255)
+  customerBusinessAddress String? @map("customer_business_address") @db.Text
+
+  notes        String?   @db.Text
+  posCreatedAt DateTime  @map("pos_created_at")
+  posClosedAt  DateTime? @map("pos_closed_at")
+  syncedAt     DateTime  @default(now()) @map("synced_at")
+  syncBatchId  String?   @map("sync_batch_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  posDevice  PosDevice       @relation(fields: [posDeviceId], references: [id])
+  shift      Shift?          @relation(fields: [shiftId], references: [id])
+  orderItems OrderItem[]
+  discounts  OrderDiscount[]
+  payments   Payment[]
+  refunds    Refund[]
+
+  @@unique([posDeviceId, posOrderId])
+  @@index([branchId])
+  @@index([storeId])
+  @@index([shiftId])
+  @@index([invoiceNumber])
+  @@index([posCreatedAt])
+  @@index([syncBatchId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String   @id @default(uuid())
+  orderId        String   @map("order_id")
+  posItemId      String?  @map("pos_item_id")
+  itemId         String?  @map("item_id")
+  itemName       String   @map("item_name")
+  itemSku        String?  @map("item_sku")
+  quantity       Int
+  unitPrice      Decimal  @map("unit_price") @db.Decimal(10, 2)
+  discountAmount Decimal  @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  taxAmount      Decimal  @default(0) @map("tax_amount") @db.Decimal(10, 2)
+  totalPrice     Decimal  @map("total_price") @db.Decimal(10, 2)
+  notes          String?  @db.Text
+  isVoided       Boolean  @default(false) @map("is_voided")
+  voidReason     String?  @map("void_reason")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  item      Item?           @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  discounts OrderDiscount[]
+
+  @@index([orderId])
+  @@index([itemId])
+  @@map("order_items")
+}
+
+model OrderDiscount {
+  id             String        @id @default(uuid())
+  orderId        String        @map("order_id")
+  orderItemId    String?       @map("order_item_id")
+  discountName   String        @map("discount_name")
+  discountType   DiscountType  @map("discount_type")
+  discountScope  DiscountScope @map("discount_scope")
+  discountValue  Decimal       @map("discount_value") @db.Decimal(10, 2)
+  discountAmount Decimal       @map("discount_amount") @db.Decimal(10, 2)
+  reason         String?
+  appliedBy      String?       @map("applied_by")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  order     Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([orderItemId])
+  @@map("order_discounts")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  posPaymentId    String        @map("pos_payment_id")
+  orderId         String        @map("order_id")
+  paymentMethod   PaymentMethod @map("payment_method")
+  status          PaymentStatus @default(COMPLETED)
+  amount          Decimal       @db.Decimal(10, 2)
+  tipAmount       Decimal       @default(0) @map("tip_amount") @db.Decimal(10, 2)
+  changeAmount    Decimal       @default(0) @map("change_amount") @db.Decimal(10, 2)
+  referenceNumber String?       @map("reference_number")
+  processedAt     DateTime      @map("processed_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  refunds Refund[]
+
+  @@unique([orderId, posPaymentId])
+  @@index([orderId])
+  @@index([paymentMethod])
+  @@map("payments")
+}
+
+model Refund {
+  id           String        @id @default(uuid())
+  posRefundId  String        @map("pos_refund_id")
+  orderId      String        @map("order_id")
+  paymentId    String?       @map("payment_id")
+  amount       Decimal       @db.Decimal(10, 2)
+  reason       String?
+  refundMethod PaymentMethod @map("refund_method")
+  processedBy  String?       @map("processed_by")
+  processedAt  DateTime      @map("processed_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@unique([orderId, posRefundId])
+  @@index([orderId])
+  @@index([paymentId])
+  @@map("refunds")
+}

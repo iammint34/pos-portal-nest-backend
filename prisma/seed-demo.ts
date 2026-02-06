@@ -6,6 +6,8 @@ const prisma = new PrismaClient();
 
 // Pre-generated UUIDs for consistent demo data
 const DEMO_STORE_ID = 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d';
+
+// 5 Branches
 const BRANCHES = [
   {
     id: 'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
@@ -25,52 +27,89 @@ const BRANCHES = [
     address: '123 Tomas Morato Avenue, Quezon City, Metro Manila 1103',
     phone: '+63 2 8345 6789',
   },
+  {
+    id: 'e5f6a7b8-c9d0-8e9f-2a3b-4c5d6e7f8a9b',
+    name: 'Ortigas Branch',
+    address: '567 Ortigas Avenue, Pasig City, Metro Manila 1605',
+    phone: '+63 2 8456 7890',
+  },
+  {
+    id: 'f6a7b8c9-d0e1-9f0a-3b4c-5d6e7f8a9b0c',
+    name: 'Alabang Branch',
+    address: '890 Alabang-Zapote Road, Muntinlupa City, Metro Manila 1780',
+    phone: '+63 2 8567 8901',
+  },
 ];
 
-const POS_DEVICES = [
+// 2 POS devices per branch (10 total)
+const POS_DEVICES = BRANCHES.flatMap((branch, branchIndex) => [
   {
-    branchIndex: 0,
-    name: 'Makati POS 1',
+    branchIndex,
+    name: `${branch.name.split(' ')[0]} POS 1`,
     status: 'ONLINE',
-    min: 'MIN-MKT-001',
+    min: `MIN-${branch.name.split(' ')[0].toUpperCase().slice(0, 3)}-001`,
   },
   {
-    branchIndex: 0,
-    name: 'Makati POS 2',
+    branchIndex,
+    name: `${branch.name.split(' ')[0]} POS 2`,
     status: 'ONLINE',
-    min: 'MIN-MKT-002',
+    min: `MIN-${branch.name.split(' ')[0].toUpperCase().slice(0, 3)}-002`,
   },
-  { branchIndex: 1, name: 'BGC POS 1', status: 'ONLINE', min: 'MIN-BGC-001' },
-  { branchIndex: 1, name: 'BGC POS 2', status: 'OFFLINE', min: 'MIN-BGC-002' },
-  { branchIndex: 2, name: 'QC POS 1', status: 'ONLINE', min: 'MIN-QC-001' },
-  { branchIndex: 2, name: 'QC POS 2', status: 'INACTIVE', min: 'MIN-QC-002' },
+]);
+
+// 4 Cashiers per branch (20 total) + 1 Admin + 1 Manager per branch (5 managers)
+const CASHIER_FIRST_NAMES = [
+  'Juan',
+  'Maria',
+  'Pedro',
+  'Ana',
+  'Jose',
+  'Rosa',
+  'Carlos',
+  'Elena',
+  'Miguel',
+  'Sofia',
+  'Luis',
+  'Carmen',
+  'Antonio',
+  'Isabel',
+  'Roberto',
+  'Teresa',
+  'Francisco',
+  'Lucia',
+  'Manuel',
+  'Patricia',
 ];
 
-const STAFF = [
-  {
-    firstName: 'Juan',
-    lastName: 'Dela Cruz',
-    email: 'juan@demo.com',
-    role: 'Cashier',
-  },
-  {
-    firstName: 'Maria',
-    lastName: 'Santos',
-    email: 'maria@demo.com',
-    role: 'Cashier',
-  },
-  {
-    firstName: 'Pedro',
-    lastName: 'Reyes',
-    email: 'pedro@demo.com',
-    role: 'Cashier',
-  },
-  {
-    firstName: 'Ana',
-    lastName: 'Garcia',
-    email: 'ana@demo.com',
-    role: 'Manager',
-  },
+const CASHIER_LAST_NAMES = [
+  'Dela Cruz',
+  'Santos',
+  'Reyes',
+  'Garcia',
+  'Ramos',
+  'Mendoza',
+  'Torres',
+  'Flores',
+  'Gonzales',
+  'Lopez',
+  'Hernandez',
+  'Martinez',
+  'Perez',
+  'Rodriguez',
+  'Sanchez',
+  'Ramirez',
+  'Cruz',
+  'Morales',
+  'Gutierrez',
+  'Chavez',
+];
+
+const MANAGER_NAMES = [
+  { firstName: 'Ricardo', lastName: 'Villamor' },
+  { firstName: 'Cristina', lastName: 'Aquino' },
+  { firstName: 'Fernando', lastName: 'Bautista' },
+  { firstName: 'Maricel', lastName: 'Dimaculangan' },
+  { firstName: 'Eduardo', lastName: 'Evangelista' },
 ];
 
 const categories = [
@@ -322,8 +361,8 @@ async function main() {
   });
   console.log(`   ✓ Store: ${store.name}`);
 
-  // ========== BRANCHES ==========
-  console.log('\n📍 Creating branches...');
+  // ========== BRANCHES (5) ==========
+  console.log('\n📍 Creating 5 branches...');
   const createdBranches = [];
   for (const branchData of BRANCHES) {
     const branch = await prisma.branch.upsert({
@@ -336,10 +375,10 @@ async function main() {
         address: branchData.address,
         phone: branchData.phone,
         status: 'ONLINE',
-        ptuNo: `PTU-2024-${branchData.id.slice(0, 3).toUpperCase()}`,
-        ptuDateIssued: new Date('2024-01-01'),
-        ptuValidUntil: new Date('2029-01-01'),
-        accreditationNo: `ACC-2024-${branchData.id.slice(0, 3).toUpperCase()}`,
+        ptuNo: `PTU-2026-${branchData.id.slice(0, 3).toUpperCase()}`,
+        ptuDateIssued: new Date('2026-01-01'),
+        ptuValidUntil: new Date('2031-01-01'),
+        accreditationNo: `ACC-2026-${branchData.id.slice(0, 3).toUpperCase()}`,
       },
     });
     createdBranches.push(branch);
@@ -378,7 +417,7 @@ async function main() {
     create: {
       storeId: store.id,
       name: 'Manager',
-      description: 'Store manager',
+      description: 'Branch manager',
     },
   });
   const managerPerms = allPermissions.filter((p) =>
@@ -411,7 +450,7 @@ async function main() {
     create: {
       storeId: store.id,
       name: 'Cashier',
-      description: 'POS Cashier (no portal access)',
+      description: 'POS Cashier',
     },
   });
   console.log('   ✓ Admin, Manager, Cashier roles created');
@@ -419,7 +458,13 @@ async function main() {
   // ========== USERS ==========
   console.log('\n👤 Creating users...');
   const passwordHash = await bcrypt.hash('admin123', 10);
-  const createdUsers = [];
+  const createdUsers: any[] = [];
+  const branchCashiers: Map<string, any[]> = new Map();
+
+  // Initialize branch cashiers map
+  for (const branch of createdBranches) {
+    branchCashiers.set(branch.id, []);
+  }
 
   // Admin user
   const adminUser = await prisma.user.upsert({
@@ -441,27 +486,68 @@ async function main() {
   createdUsers.push(adminUser);
   console.log('   ✓ admin@demo.com (Admin)');
 
-  // Staff users
-  for (const staff of STAFF) {
+  // 1 Manager per branch (5 managers)
+  for (let i = 0; i < BRANCHES.length; i++) {
+    const manager = MANAGER_NAMES[i];
+    const branch = createdBranches[i];
+    const email = `${manager.firstName.toLowerCase()}.${manager.lastName.toLowerCase()}@demo.com`;
+
     const user = await prisma.user.upsert({
-      where: { email: staff.email },
+      where: { email },
       update: { passwordHash },
       create: {
-        email: staff.email,
+        email,
         passwordHash,
-        firstName: staff.firstName,
-        lastName: staff.lastName,
+        firstName: manager.firstName,
+        lastName: manager.lastName,
         isActive: true,
       },
     });
-    const role = staff.role === 'Manager' ? managerRole : cashierRole;
     await prisma.storeUser.upsert({
       where: { userId_storeId: { userId: user.id, storeId: store.id } },
-      update: { roleId: role.id },
-      create: { userId: user.id, storeId: store.id, roleId: role.id },
+      update: { roleId: managerRole.id },
+      create: { userId: user.id, storeId: store.id, roleId: managerRole.id },
     });
     createdUsers.push(user);
-    console.log(`   ✓ ${staff.email} (${staff.role})`);
+    console.log(`   ✓ ${email} (Manager - ${branch.name})`);
+  }
+
+  // 4 Cashiers per branch (20 cashiers)
+  let cashierIndex = 0;
+  for (let branchIdx = 0; branchIdx < BRANCHES.length; branchIdx++) {
+    const branch = createdBranches[branchIdx];
+    const branchCashierList: any[] = [];
+
+    for (let c = 0; c < 4; c++) {
+      const firstName =
+        CASHIER_FIRST_NAMES[cashierIndex % CASHIER_FIRST_NAMES.length];
+      const lastName =
+        CASHIER_LAST_NAMES[cashierIndex % CASHIER_LAST_NAMES.length];
+      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(' ', '')}@demo.com`;
+
+      const user = await prisma.user.upsert({
+        where: { email },
+        update: { passwordHash },
+        create: {
+          email,
+          passwordHash,
+          firstName,
+          lastName,
+          isActive: true,
+        },
+      });
+      await prisma.storeUser.upsert({
+        where: { userId_storeId: { userId: user.id, storeId: store.id } },
+        update: { roleId: cashierRole.id },
+        create: { userId: user.id, storeId: store.id, roleId: cashierRole.id },
+      });
+      createdUsers.push(user);
+      branchCashierList.push(user);
+      cashierIndex++;
+    }
+
+    branchCashiers.set(branch.id, branchCashierList);
+    console.log(`   ✓ ${branch.name}: 4 cashiers created`);
   }
 
   // ========== CATEGORIES & ITEMS ==========
@@ -513,9 +599,9 @@ async function main() {
     console.log(`   ✓ ${categoryData.name}: ${items.length} items`);
   }
 
-  // ========== POS DEVICES ==========
-  console.log('\n💻 Creating POS devices...');
-  const createdDevices = [];
+  // ========== POS DEVICES (2 per branch = 10 total) ==========
+  console.log('\n💻 Creating POS devices (2 per branch)...');
+  const createdDevices: any[] = [];
 
   for (const device of POS_DEVICES) {
     const branch = createdBranches[device.branchIndex];
@@ -528,24 +614,18 @@ async function main() {
         min: device.min,
         serialNumber: `SN-${device.min}`,
         permitNumber: `PERMIT-${device.min}`,
-        isRegistered: device.status !== 'INACTIVE',
-        registeredAt: device.status !== 'INACTIVE' ? new Date() : null,
-        lastHeartbeatAt:
-          device.status === 'ONLINE'
-            ? new Date()
-            : new Date(Date.now() - 86400000),
-        lastSyncAt:
-          device.status === 'ONLINE'
-            ? new Date()
-            : new Date(Date.now() - 86400000),
+        isRegistered: true,
+        registeredAt: new Date('2026-01-01'),
+        lastHeartbeatAt: new Date(),
+        lastSyncAt: new Date(),
       },
     });
     createdDevices.push(posDevice);
     console.log(`   ✓ ${device.name} (${device.status})`);
   }
 
-  // ========== GENERATE ORDERS & TRANSACTIONS ==========
-  console.log('\n📝 Generating orders and transactions (past 30 days)...');
+  // ========== GENERATE ORDERS FOR JANUARY 2026 ==========
+  console.log('\n📝 Generating orders for January 2026 (31 days)...');
 
   const paymentMethods = [
     'CASH',
@@ -557,59 +637,96 @@ async function main() {
   let totalOrders = 0;
   let totalRevenue = 0;
 
-  // Generate data for the past 30 days
-  for (let daysAgo = 30; daysAgo >= 0; daysAgo--) {
-    const date = new Date();
-    date.setDate(date.getDate() - daysAgo);
+  // January 2026: Day 1 to Day 31
+  for (let day = 1; day <= 31; day++) {
+    const date = new Date(2026, 0, day); // January is month 0
     date.setHours(0, 0, 0, 0);
 
     // More orders on weekends
-    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const ordersPerBranch = isWeekend
-      ? randomBetween(25, 40)
-      : randomBetween(15, 30);
+      ? randomBetween(30, 50)
+      : randomBetween(20, 35);
 
     for (const branch of createdBranches) {
       const branchDevices = createdDevices.filter(
-        (d) => d.branchId === branch.id && d.status !== 'INACTIVE',
+        (d) => d.branchId === branch.id,
       );
-      if (branchDevices.length === 0) continue;
+      const cashiers = branchCashiers.get(branch.id) || [];
 
-      // Create a shift for each day
-      const operator = randomFromArray(
-        createdUsers.filter((u) => u.email !== 'admin@demo.com'),
-      );
-      const device = randomFromArray(branchDevices);
+      if (branchDevices.length === 0 || cashiers.length === 0) continue;
 
-      const shiftStart = new Date(date);
-      shiftStart.setHours(9, 0, 0, 0);
-      const shiftEnd = new Date(date);
-      shiftEnd.setHours(21, 0, 0, 0);
+      // Create shifts for each cashier (2 shifts: morning and afternoon)
+      const shifts: any[] = [];
 
-      const shift = await prisma.shift.create({
-        data: {
-          posShiftId: uuidv4(),
-          posDeviceId: device.id,
-          branchId: branch.id,
-          storeId: store.id,
-          posOperatorId: operator.id,
-          operatorId: operator.id,
-          status: daysAgo === 0 ? 'OPEN' : 'CLOSED',
-          openedAt: shiftStart,
-          closedAt: daysAgo === 0 ? null : shiftEnd,
-          openingCash: 5000,
-          closingCash: daysAgo === 0 ? null : randomBetween(15000, 35000),
-          expectedCash: daysAgo === 0 ? null : randomBetween(15000, 35000),
-          variance: daysAgo === 0 ? null : randomBetween(-100, 100),
-          orderCount: ordersPerBranch,
-        },
-      });
+      // Morning shift (9 AM - 3 PM)
+      for (let i = 0; i < 2; i++) {
+        const operator = cashiers[i];
+        const device = branchDevices[i % branchDevices.length];
+        const shiftStart = new Date(date);
+        shiftStart.setHours(9, 0, 0, 0);
+        const shiftEnd = new Date(date);
+        shiftEnd.setHours(15, 0, 0, 0);
 
-      // Generate orders for this branch/day
+        const shift = await prisma.shift.create({
+          data: {
+            posShiftId: uuidv4(),
+            posDeviceId: device.id,
+            branchId: branch.id,
+            storeId: store.id,
+            posOperatorId: operator.id,
+            operatorId: operator.id,
+            status: 'CLOSED',
+            openedAt: shiftStart,
+            closedAt: shiftEnd,
+            openingCash: 5000,
+            closingCash: randomBetween(15000, 25000),
+            expectedCash: randomBetween(15000, 25000),
+            variance: randomBetween(-50, 50),
+          },
+        });
+        shifts.push({ shift, operator, device, startHour: 9, endHour: 15 });
+      }
+
+      // Afternoon shift (3 PM - 9 PM)
+      for (let i = 2; i < 4; i++) {
+        const operator = cashiers[i];
+        const device = branchDevices[i % branchDevices.length];
+        const shiftStart = new Date(date);
+        shiftStart.setHours(15, 0, 0, 0);
+        const shiftEnd = new Date(date);
+        shiftEnd.setHours(21, 0, 0, 0);
+
+        const shift = await prisma.shift.create({
+          data: {
+            posShiftId: uuidv4(),
+            posDeviceId: device.id,
+            branchId: branch.id,
+            storeId: store.id,
+            posOperatorId: operator.id,
+            operatorId: operator.id,
+            status: 'CLOSED',
+            openedAt: shiftStart,
+            closedAt: shiftEnd,
+            openingCash: 5000,
+            closingCash: randomBetween(20000, 35000),
+            expectedCash: randomBetween(20000, 35000),
+            variance: randomBetween(-50, 50),
+          },
+        });
+        shifts.push({ shift, operator, device, startHour: 15, endHour: 21 });
+      }
+
+      // Generate orders distributed across shifts
       for (let i = 0; i < ordersPerBranch; i++) {
+        // Pick a random shift
+        const { shift, operator, device, startHour, endHour } =
+          randomFromArray(shifts);
+
         const orderTime = new Date(date);
         orderTime.setHours(
-          randomBetween(10, 20),
+          randomBetween(startHour, endHour - 1),
           randomBetween(0, 59),
           randomBetween(0, 59),
         );
@@ -660,7 +777,7 @@ async function main() {
             storeId: store.id,
             shiftId: shift.id,
             operatorId: operator.id,
-            orderNumber: `${branch.name.slice(0, 3).toUpperCase()}-${Date.now()}-${i}`,
+            orderNumber: `${branch.name.slice(0, 3).toUpperCase()}-${day.toString().padStart(2, '0')}-${i.toString().padStart(4, '0')}`,
             orderType: randomFromArray(orderTypes) as any,
             status: isVoided ? 'VOIDED' : isRefunded ? 'REFUNDED' : 'COMPLETED',
             subtotal,
@@ -743,40 +860,41 @@ async function main() {
         totalOrders++;
       }
 
-      // Create Z-Reading for completed days
-      if (daysAgo > 0) {
-        await prisma.zReading.create({
-          data: {
-            posDeviceId: device.id,
-            branchId: branch.id,
-            storeId: store.id,
-            posZReadingId: uuidv4(),
-            zCounterNo: 30 - daysAgo + 1,
-            beginningInvoiceNo: `SI-${String(totalOrders - ordersPerBranch + 1).padStart(6, '0')}`,
-            endingInvoiceNo: `SI-${String(totalOrders).padStart(6, '0')}`,
-            beginningGrandTotal: totalRevenue - ordersPerBranch * 500,
-            endingGrandTotal: totalRevenue,
-            grossSales: ordersPerBranch * 500,
-            netSales: ordersPerBranch * 450,
-            vatableSales: ordersPerBranch * 400,
-            vatAmount: ordersPerBranch * 50,
-            vatExemptSales: 0,
-            zeroRatedSales: 0,
-            discountTotal: ordersPerBranch * 20,
-            refundTotal: ordersPerBranch * 10,
-            voidTotal: ordersPerBranch * 5,
-            transactionCount: ordersPerBranch,
-            voidCount: Math.floor(ordersPerBranch * 0.02),
-            refundCount: Math.floor(ordersPerBranch * 0.03),
-            closedBy: operator.id,
-            closedAt: shiftEnd,
-          },
-        });
-      }
+      // Create Z-Reading for the day
+      const lastDevice = branchDevices[0];
+      await prisma.zReading.create({
+        data: {
+          posDeviceId: lastDevice.id,
+          branchId: branch.id,
+          storeId: store.id,
+          posZReadingId: uuidv4(),
+          zCounterNo: day,
+          beginningInvoiceNo: `SI-${String((day - 1) * ordersPerBranch + 1).padStart(6, '0')}`,
+          endingInvoiceNo: `SI-${String(day * ordersPerBranch).padStart(6, '0')}`,
+          beginningGrandTotal: (day - 1) * ordersPerBranch * 450,
+          endingGrandTotal: day * ordersPerBranch * 450,
+          grossSales: ordersPerBranch * 500,
+          netSales: ordersPerBranch * 450,
+          vatableSales: ordersPerBranch * 400,
+          vatAmount: ordersPerBranch * 50,
+          vatExemptSales: 0,
+          zeroRatedSales: 0,
+          discountTotal: ordersPerBranch * 20,
+          refundTotal: ordersPerBranch * 10,
+          voidTotal: ordersPerBranch * 5,
+          transactionCount: ordersPerBranch,
+          voidCount: Math.floor(ordersPerBranch * 0.02),
+          refundCount: Math.floor(ordersPerBranch * 0.03),
+          closedBy: cashiers[0].id,
+          closedAt: new Date(date.getTime() + 21 * 3600000), // 9 PM
+        },
+      });
     }
 
-    if (daysAgo % 5 === 0) {
-      console.log(`   ✓ Day -${daysAgo}: Generated orders`);
+    if (day % 7 === 0 || day === 31) {
+      console.log(
+        `   ✓ January ${day}: Generated ${ordersPerBranch * 5} orders across 5 branches`,
+      );
     }
   }
 
@@ -789,14 +907,20 @@ async function main() {
   console.log(`   Branches: ${createdBranches.length}`);
   console.log(`   Categories: ${categories.length}`);
   console.log(`   Items: ${createdItems.length}`);
-  console.log(`   POS Devices: ${createdDevices.length}`);
-  console.log(`   Users: ${createdUsers.length}`);
-  console.log(`   Orders: ~${totalOrders}`);
+  console.log(`   POS Devices: ${createdDevices.length} (2 per branch)`);
+  console.log(
+    `   Users: ${createdUsers.length} (1 admin + 5 managers + 20 cashiers)`,
+  );
+  console.log(`   Orders: ~${totalOrders} (January 2026)`);
   console.log(`   Revenue: ~₱${totalRevenue.toLocaleString()}`);
   console.log('\n🔐 Login credentials (password: admin123):');
   console.log('   - admin@demo.com (Admin - Full Access)');
-  console.log('   - ana@demo.com (Manager)');
-  console.log('   - juan@demo.com, maria@demo.com, pedro@demo.com (Cashiers)');
+  console.log('   - ricardo.villamor@demo.com (Manager - Makati)');
+  console.log('   - cristina.aquino@demo.com (Manager - BGC)');
+  console.log('   - fernando.bautista@demo.com (Manager - QC)');
+  console.log('   - maricel.dimaculangan@demo.com (Manager - Ortigas)');
+  console.log('   - eduardo.evangelista@demo.com (Manager - Alabang)');
+  console.log('   - 20 cashiers (4 per branch)');
   console.log('\n========================================\n');
 }
 

@@ -10,7 +10,10 @@ import {
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateItemDto {
-  @ApiPropertyOptional({ example: 'store-uuid', description: 'Store ID (required for owners, ignored for store users)' })
+  @ApiPropertyOptional({
+    example: 'store-uuid',
+    description: 'Store ID (required for owners, ignored for store users)',
+  })
   @IsOptional()
   @IsString()
   storeId?: string;
@@ -47,7 +50,9 @@ export class CreateItemDto {
 }
 
 export class UpdateItemDto {
-  @ApiPropertyOptional({ description: 'Store ID (ignored, item store cannot be changed)' })
+  @ApiPropertyOptional({
+    description: 'Store ID (ignored, item store cannot be changed)',
+  })
   @IsOptional()
   @IsString()
   storeId?: string;
@@ -85,7 +90,10 @@ export class UpdateItemDto {
 }
 
 export class CreateCategoryDto {
-  @ApiPropertyOptional({ example: 'store-uuid', description: 'Store ID (required for owners, ignored for store users)' })
+  @ApiPropertyOptional({
+    example: 'store-uuid',
+    description: 'Store ID (required for owners, ignored for store users)',
+  })
   @IsOptional()
   @IsString()
   storeId?: string;
@@ -112,7 +120,9 @@ export class CreateCategoryDto {
 }
 
 export class UpdateCategoryDto {
-  @ApiPropertyOptional({ description: 'Store ID (ignored, category store cannot be changed)' })
+  @ApiPropertyOptional({
+    description: 'Store ID (ignored, category store cannot be changed)',
+  })
   @IsOptional()
   @IsString()
   storeId?: string;

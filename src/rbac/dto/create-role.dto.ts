@@ -1,8 +1,16 @@
-import { IsNotEmpty, IsString, IsOptional, IsArray, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsArray,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateRoleDto {
-  @ApiPropertyOptional({ description: 'Store ID (required for owner users without storeId)' })
+  @ApiPropertyOptional({
+    description: 'Store ID (required for owner users without storeId)',
+  })
   @IsOptional()
   @IsUUID()
   storeId?: string;
@@ -35,7 +43,9 @@ export class UpdateRoleDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: ['store.read', 'item.create', 'item.update'] })
+  @ApiPropertyOptional({
+    example: ['store.read', 'item.create', 'item.update'],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })

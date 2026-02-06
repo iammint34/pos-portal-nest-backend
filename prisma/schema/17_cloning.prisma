@@ -1,0 +1,29 @@
+// POS Portal Backend - Cloning Models
+// Store and branch cloning job tracking
+
+model CloneJob {
+  id           String      @id @default(uuid())
+  storeId      String      @map("store_id")
+  type         CloneType
+  sourceId     String      @map("source_id") // Source store or branch ID
+  targetId     String?     @map("target_id") // Created entity ID (null until complete)
+  targetName   String      @map("target_name") // Name of the new entity
+  config       Json // Clone configuration: { items: true, roles: true, ... }
+  status       CloneStatus @default(PENDING)
+  errorMessage String?     @map("error_message") @db.Text
+  createdBy    String      @map("created_by")
+  startedAt    DateTime?   @map("started_at")
+  completedAt  DateTime?   @map("completed_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  store   Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  creator User  @relation(fields: [createdBy], references: [id])
+
+  @@index([storeId])
+  @@index([status])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@map("clone_jobs")
+}

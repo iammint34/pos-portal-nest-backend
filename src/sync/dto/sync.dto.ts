@@ -25,12 +25,16 @@ export class SyncRequestDto {
   @IsEnum(SyncType)
   syncType?: SyncType;
 
-  @ApiPropertyOptional({ description: 'Last known version for incremental sync' })
+  @ApiPropertyOptional({
+    description: 'Last known version for incremental sync',
+  })
   @IsOptional()
   @IsNumber()
   lastVersion?: number;
 
-  @ApiPropertyOptional({ description: 'Last sync timestamp for incremental sync' })
+  @ApiPropertyOptional({
+    description: 'Last sync timestamp for incremental sync',
+  })
   @IsOptional()
   @IsDateString()
   lastSyncAt?: string;
