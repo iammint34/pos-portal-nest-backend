@@ -546,31 +546,66 @@ export class LossPreventionService {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const [openIncidents, criticalIncidents, recentIncidents] =
-      await Promise.all([
-        (this.prisma as any).lossPreventionIncident.count({
-          where: {
-            storeId,
-            status: { in: [IncidentStatus.OPEN, IncidentStatus.ACKNOWLEDGED] },
-          },
-        }),
-        (this.prisma as any).lossPreventionIncident.count({
-          where: {
-            storeId,
-            severity: AlertSeverity.CRITICAL,
-            status: { not: IncidentStatus.RESOLVED },
-          },
-        }),
-        (this.prisma as any).lossPreventionIncident.findMany({
-          where: { storeId },
-          include: {
-            branch: { select: { id: true, name: true } },
-            staff: { select: { id: true, firstName: true, lastName: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-        }),
-      ]);
+    // Get threshold counts
+    const [totalThresholds, enabledThresholds] = await Promise.all([
+      (this.prisma as any).lossPreventionThreshold.count({
+        where: { storeId },
+      }),
+      (this.prisma as any).lossPreventionThreshold.count({
+        where: { storeId, enabled: true },
+      }),
+    ]);
+
+    // Get incident counts by status
+    const [
+      totalIncidents,
+      openIncidents,
+      acknowledgedIncidents,
+      resolvedIncidents,
+      escalatedIncidents,
+      recentIncidents,
+    ] = await Promise.all([
+      (this.prisma as any).lossPreventionIncident.count({
+        where: { storeId },
+      }),
+      (this.prisma as any).lossPreventionIncident.count({
+        where: { storeId, status: IncidentStatus.OPEN },
+      }),
+      (this.prisma as any).lossPreventionIncident.count({
+        where: { storeId, status: IncidentStatus.ACKNOWLEDGED },
+      }),
+      (this.prisma as any).lossPreventionIncident.count({
+        where: { storeId, status: IncidentStatus.RESOLVED },
+      }),
+      (this.prisma as any).lossPreventionIncident.count({
+        where: { storeId, status: IncidentStatus.ESCALATED },
+      }),
+      (this.prisma as any).lossPreventionIncident.findMany({
+        where: { storeId },
+        include: {
+          branch: { select: { id: true, name: true } },
+          staff: { select: { id: true, firstName: true, lastName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+    ]);
+
+    // Get incidents by severity
+    const bySeverityRaw = await (
+      this.prisma as any
+    ).lossPreventionIncident.groupBy({
+      by: ['severity'],
+      where: { storeId },
+      _count: true,
+    });
+    const incidentsBySeverity = { INFO: 0, WARNING: 0, CRITICAL: 0 };
+    for (const item of bySeverityRaw) {
+      if (item.severity in incidentsBySeverity) {
+        incidentsBySeverity[item.severity as keyof typeof incidentsBySeverity] =
+          item._count;
+      }
+    }
 
     // Get metric trends
     const currentWeekIncidents = await (
@@ -613,16 +648,21 @@ export class LossPreventionService {
     });
 
     // Calculate risk score (0-100)
-    // Based on: open incidents, critical incidents, recent trends
     let riskScore = 0;
-    riskScore += Math.min(openIncidents * 5, 30); // Up to 30 points for open incidents
-    riskScore += Math.min(criticalIncidents * 15, 40); // Up to 40 points for critical
+    riskScore += Math.min(openIncidents * 5, 30);
+    riskScore += Math.min(incidentsBySeverity.CRITICAL * 15, 40);
     const upTrends = topMetrics.filter((m: any) => m.trend === 'up').length;
-    riskScore += Math.min(upTrends * 10, 30); // Up to 30 points for increasing trends
+    riskScore += Math.min(upTrends * 10, 30);
 
     return {
+      totalThresholds,
+      enabledThresholds,
+      totalIncidents,
       openIncidents,
-      criticalIncidents,
+      acknowledgedIncidents,
+      resolvedIncidents,
+      escalatedIncidents,
+      incidentsBySeverity,
       recentIncidents,
       topMetrics,
       riskScore: Math.min(riskScore, 100),

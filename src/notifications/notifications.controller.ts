@@ -55,7 +55,7 @@ class UpdateScheduleDto {
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
-@Controller('api/v1/stores/:storeId/notifications')
+@Controller('stores/:storeId/notifications')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class NotificationsController {
   constructor(
@@ -67,7 +67,7 @@ export class NotificationsController {
   // ==================== Preferences ====================
 
   @Get('preferences')
-  @Permissions('store.read')
+  @Permissions('notification.read')
   @ApiOperation({ summary: 'Get current user notification preferences' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 200, description: 'Preferences retrieved' })
@@ -79,7 +79,7 @@ export class NotificationsController {
   }
 
   @Patch('preferences')
-  @Permissions('store.read')
+  @Permissions('notification.read')
   @ApiOperation({ summary: 'Update current user notification preferences' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 200, description: 'Preferences updated' })
@@ -94,7 +94,7 @@ export class NotificationsController {
   }
 
   @Get('preferences/all')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @ApiOperation({ summary: 'Get all user preferences for store (admin)' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 200, description: 'All preferences retrieved' })
@@ -103,7 +103,7 @@ export class NotificationsController {
   }
 
   @Get('preferences/user/:userId')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @ApiOperation({ summary: 'Get specific user preferences (admin)' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiParam({ name: 'userId', description: 'User ID' })
@@ -116,7 +116,7 @@ export class NotificationsController {
   }
 
   @Patch('preferences/user/:userId')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @ApiOperation({ summary: 'Update specific user preferences (admin)' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiParam({ name: 'userId', description: 'User ID' })
@@ -133,7 +133,7 @@ export class NotificationsController {
   // ==================== Notification Logs ====================
 
   @Get('logs')
-  @Permissions('store.read')
+  @Permissions('notification.read')
   @ApiOperation({ summary: 'Get notification logs' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiQuery({ name: 'type', required: false, enum: NotificationType })
@@ -160,7 +160,7 @@ export class NotificationsController {
   }
 
   @Get('logs/my')
-  @Permissions('store.read')
+  @Permissions('notification.read')
   @ApiOperation({ summary: 'Get current user notification logs' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -179,7 +179,7 @@ export class NotificationsController {
   // ==================== Test Notifications ====================
 
   @Post('test')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Send a test notification to current user' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -213,7 +213,7 @@ export class NotificationsController {
   // ==================== Schedules ====================
 
   @Get('schedules')
-  @Permissions('store.read')
+  @Permissions('notification.read')
   @ApiOperation({ summary: 'Get notification schedules for store' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 200, description: 'Schedules retrieved' })
@@ -222,7 +222,7 @@ export class NotificationsController {
   }
 
   @Get('schedules/:type')
-  @Permissions('store.read')
+  @Permissions('notification.read')
   @ApiOperation({ summary: 'Get specific notification schedule' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiParam({
@@ -239,7 +239,7 @@ export class NotificationsController {
   }
 
   @Patch('schedules/:type')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @ApiOperation({ summary: 'Update notification schedule' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiParam({
@@ -257,7 +257,7 @@ export class NotificationsController {
   }
 
   @Post('schedules/initialize')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Initialize default schedules for store' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -269,7 +269,7 @@ export class NotificationsController {
   }
 
   @Post('schedules/:type/trigger')
-  @Permissions('store.update')
+  @Permissions('notification.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Manually trigger a digest notification' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })

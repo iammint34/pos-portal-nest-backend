@@ -132,8 +132,18 @@ export interface ThresholdWithStats extends LossPreventionThreshold {
 }
 
 export interface DashboardSummary {
+  totalThresholds: number;
+  enabledThresholds: number;
+  totalIncidents: number;
   openIncidents: number;
-  criticalIncidents: number;
+  acknowledgedIncidents: number;
+  resolvedIncidents: number;
+  escalatedIncidents: number;
+  incidentsBySeverity: {
+    INFO: number;
+    WARNING: number;
+    CRITICAL: number;
+  };
   recentIncidents: LossPreventionIncident[];
   topMetrics: Array<{
     metricType: string;

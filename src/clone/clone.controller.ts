@@ -19,28 +19,25 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
-import { FeatureFlagGuard } from '../common/guards/feature-flag.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
-import { RequireFeature } from '../common/decorators/feature-flag.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CloneService } from './clone.service';
 import { CloneBranchDto } from './dto/clone-branch.dto';
 import { CloneStoreDto } from './dto/clone-store.dto';
 import { ClonePreviewDto } from './dto/clone-preview.dto';
-import { FeatureKey } from '../feature-flags/feature-flags.constants';
 
 @ApiTags('Clone')
 @ApiBearerAuth()
-@Controller('api/v1')
-@UseGuards(JwtAuthGuard, PermissionsGuard, FeatureFlagGuard)
+@Controller()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class CloneController {
   constructor(private readonly cloneService: CloneService) {}
 
   // ==================== Branch Cloning ====================
 
   @Post('stores/:storeId/clone/branch')
-  @RequireFeature(FeatureKey.STORE_CLONING)
-  @Permissions('branch.create')
+
+  @Permissions('clone.create')
   @ApiOperation({ summary: 'Clone a branch within a store' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 201, description: 'Branch cloned successfully' })
@@ -60,8 +57,8 @@ export class CloneController {
   // ==================== Store Cloning ====================
 
   @Post('clone/store')
-  @RequireFeature(FeatureKey.STORE_CLONING)
-  @Permissions('store.create')
+
+  @Permissions('clone.create')
   @ApiOperation({ summary: 'Clone an entire store' })
   @ApiResponse({ status: 201, description: 'Store cloned successfully' })
   @ApiResponse({ status: 404, description: 'Source store not found' })
@@ -72,8 +69,8 @@ export class CloneController {
   // ==================== Preview ====================
 
   @Post('stores/:storeId/clone/preview')
-  @RequireFeature(FeatureKey.STORE_CLONING)
-  @Permissions('store.read')
+
+  @Permissions('clone.read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Preview what will be cloned (dry run)' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -88,8 +85,8 @@ export class CloneController {
   // ==================== Clone Jobs ====================
 
   @Get('stores/:storeId/clone/jobs')
-  @RequireFeature(FeatureKey.STORE_CLONING)
-  @Permissions('store.read')
+
+  @Permissions('clone.read')
   @ApiOperation({ summary: 'Get clone job history for a store' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiQuery({
@@ -106,8 +103,8 @@ export class CloneController {
   }
 
   @Get('clone/jobs/:jobId')
-  @RequireFeature(FeatureKey.STORE_CLONING)
-  @Permissions('store.read')
+
+  @Permissions('clone.read')
   @ApiOperation({ summary: 'Get a specific clone job' })
   @ApiParam({ name: 'jobId', description: 'Clone job ID' })
   @ApiResponse({ status: 200, description: 'Clone job retrieved' })
@@ -117,8 +114,8 @@ export class CloneController {
   }
 
   @Post('clone/jobs/:jobId/rollback')
-  @RequireFeature(FeatureKey.STORE_CLONING)
-  @Permissions('store.delete')
+
+  @Permissions('clone.create')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Rollback a failed clone job' })
   @ApiParam({ name: 'jobId', description: 'Clone job ID' })

@@ -36,13 +36,6 @@ export class CloneStoreConfigDto {
   @IsBoolean()
   lossPreventionThresholds?: boolean = true;
 
-  @ApiPropertyOptional({
-    description: 'Clone feature flag settings',
-    default: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  storeFeatures?: boolean = false;
 }
 
 export enum StoreType {

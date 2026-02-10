@@ -162,22 +162,6 @@ enum AlertSeverity {
 }
 
 // =====================
-// Feature Flag Enums
-// =====================
-
-enum FeatureKey {
-  LOSS_PREVENTION
-  NOTIFICATIONS
-  DAILY_DIGEST
-  STORE_CLONING
-  MENU_ANALYTICS
-  INCIDENT_TIMELINE
-  FRANCHISE_CONTROL
-  POS_RECOVERY
-  SYNC_ASSURANCE
-}
-
-// =====================
 // Notification Enums
 // =====================
 

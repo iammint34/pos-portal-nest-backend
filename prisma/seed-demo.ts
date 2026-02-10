@@ -2,6 +2,11 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 
+if (process.env.NODE_ENV === 'production') {
+  console.error('❌ Cannot run demo seed in production environment!');
+  process.exit(1);
+}
+
 const prisma = new PrismaClient();
 
 // Pre-generated UUIDs for consistent demo data
@@ -429,6 +434,15 @@ async function main() {
       'item.update',
       'pos.read',
       'inventory.read',
+      'inventory.receive',
+      'loss_prevention.read',
+      'notification.read',
+      'notification.manage',
+      'clone.read',
+      'report.read',
+      'alert.read',
+      'alert.acknowledge',
+      'audit.read',
     ].includes(p.code),
   );
   for (const permission of managerPerms) {
@@ -624,8 +638,8 @@ async function main() {
     console.log(`   ✓ ${device.name} (${device.status})`);
   }
 
-  // ========== GENERATE ORDERS FOR JANUARY 2026 ==========
-  console.log('\n📝 Generating orders for January 2026 (31 days)...');
+  // ========== GENERATE ORDERS FOR JANUARY - JUNE 2026 (6 MONTHS) ==========
+  console.log('\n📝 Generating orders for January - June 2026 (6 months)...');
 
   const paymentMethods = [
     'CASH',
@@ -636,266 +650,276 @@ async function main() {
   const orderTypes = ['DINE_IN', 'TAKEOUT', 'DELIVERY'];
   let totalOrders = 0;
   let totalRevenue = 0;
+  let zCounterByBranch: Map<string, number> = new Map();
+  for (const branch of createdBranches) {
+    zCounterByBranch.set(branch.id, 0);
+  }
 
-  // January 2026: Day 1 to Day 31
-  for (let day = 1; day <= 31; day++) {
-    const date = new Date(2026, 0, day); // January is month 0
-    date.setHours(0, 0, 0, 0);
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June'];
 
-    // More orders on weekends
-    const dayOfWeek = date.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const ordersPerBranch = isWeekend
-      ? randomBetween(30, 50)
-      : randomBetween(20, 35);
+  for (let month = 0; month < 6; month++) {
+    const daysInMonth = new Date(2026, month + 1, 0).getDate();
+    let monthOrders = 0;
 
-    for (const branch of createdBranches) {
-      const branchDevices = createdDevices.filter(
-        (d) => d.branchId === branch.id,
-      );
-      const cashiers = branchCashiers.get(branch.id) || [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(2026, month, day);
+      date.setHours(0, 0, 0, 0);
 
-      if (branchDevices.length === 0 || cashiers.length === 0) continue;
+      // More orders on weekends
+      const dayOfWeek = date.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const ordersPerBranch = isWeekend
+        ? randomBetween(30, 50)
+        : randomBetween(20, 35);
 
-      // Create shifts for each cashier (2 shifts: morning and afternoon)
-      const shifts: any[] = [];
-
-      // Morning shift (9 AM - 3 PM)
-      for (let i = 0; i < 2; i++) {
-        const operator = cashiers[i];
-        const device = branchDevices[i % branchDevices.length];
-        const shiftStart = new Date(date);
-        shiftStart.setHours(9, 0, 0, 0);
-        const shiftEnd = new Date(date);
-        shiftEnd.setHours(15, 0, 0, 0);
-
-        const shift = await prisma.shift.create({
-          data: {
-            posShiftId: uuidv4(),
-            posDeviceId: device.id,
-            branchId: branch.id,
-            storeId: store.id,
-            posOperatorId: operator.id,
-            operatorId: operator.id,
-            status: 'CLOSED',
-            openedAt: shiftStart,
-            closedAt: shiftEnd,
-            openingCash: 5000,
-            closingCash: randomBetween(15000, 25000),
-            expectedCash: randomBetween(15000, 25000),
-            variance: randomBetween(-50, 50),
-          },
-        });
-        shifts.push({ shift, operator, device, startHour: 9, endHour: 15 });
-      }
-
-      // Afternoon shift (3 PM - 9 PM)
-      for (let i = 2; i < 4; i++) {
-        const operator = cashiers[i];
-        const device = branchDevices[i % branchDevices.length];
-        const shiftStart = new Date(date);
-        shiftStart.setHours(15, 0, 0, 0);
-        const shiftEnd = new Date(date);
-        shiftEnd.setHours(21, 0, 0, 0);
-
-        const shift = await prisma.shift.create({
-          data: {
-            posShiftId: uuidv4(),
-            posDeviceId: device.id,
-            branchId: branch.id,
-            storeId: store.id,
-            posOperatorId: operator.id,
-            operatorId: operator.id,
-            status: 'CLOSED',
-            openedAt: shiftStart,
-            closedAt: shiftEnd,
-            openingCash: 5000,
-            closingCash: randomBetween(20000, 35000),
-            expectedCash: randomBetween(20000, 35000),
-            variance: randomBetween(-50, 50),
-          },
-        });
-        shifts.push({ shift, operator, device, startHour: 15, endHour: 21 });
-      }
-
-      // Generate orders distributed across shifts
-      for (let i = 0; i < ordersPerBranch; i++) {
-        // Pick a random shift
-        const { shift, operator, device, startHour, endHour } =
-          randomFromArray(shifts);
-
-        const orderTime = new Date(date);
-        orderTime.setHours(
-          randomBetween(startHour, endHour - 1),
-          randomBetween(0, 59),
-          randomBetween(0, 59),
+      for (const branch of createdBranches) {
+        const branchDevices = createdDevices.filter(
+          (d) => d.branchId === branch.id,
         );
+        const cashiers = branchCashiers.get(branch.id) || [];
 
-        // Random items for this order (2-5 items)
-        const numItems = randomBetween(2, 5);
-        const orderItems: any[] = [];
-        let subtotal = 0;
+        if (branchDevices.length === 0 || cashiers.length === 0) continue;
 
-        for (let j = 0; j < numItems; j++) {
-          const item = randomFromArray(createdItems);
-          const quantity = randomBetween(1, 3);
-          const unitPrice = Number(item.price);
-          const totalPrice = unitPrice * quantity;
-          subtotal += totalPrice;
+        // Create shifts for each cashier (2 shifts: morning and afternoon)
+        const shifts: any[] = [];
 
-          orderItems.push({
-            itemId: item.id,
-            itemName: item.name,
-            itemSku: item.sku,
-            quantity,
-            unitPrice,
-            totalPrice,
-            discountAmount: 0,
-            taxAmount: 0,
+        // Morning shift (9 AM - 3 PM)
+        for (let i = 0; i < 2; i++) {
+          const operator = cashiers[i];
+          const device = branchDevices[i % branchDevices.length];
+          const shiftStart = new Date(date);
+          shiftStart.setHours(9, 0, 0, 0);
+          const shiftEnd = new Date(date);
+          shiftEnd.setHours(15, 0, 0, 0);
+
+          const shift = await prisma.shift.create({
+            data: {
+              posShiftId: uuidv4(),
+              posDeviceId: device.id,
+              branchId: branch.id,
+              storeId: store.id,
+              posOperatorId: operator.id,
+              operatorId: operator.id,
+              status: 'CLOSED',
+              openedAt: shiftStart,
+              closedAt: shiftEnd,
+              openingCash: 5000,
+              closingCash: randomBetween(15000, 25000),
+              expectedCash: randomBetween(15000, 25000),
+              variance: randomBetween(-50, 50),
+            },
           });
+          shifts.push({ shift, operator, device, startHour: 9, endHour: 15 });
         }
 
-        // Apply occasional discount (20% of orders)
-        let discountTotal = 0;
-        const hasDiscount = Math.random() < 0.2;
-        if (hasDiscount) {
-          discountTotal = Math.round(subtotal * (randomBetween(5, 15) / 100));
+        // Afternoon shift (3 PM - 9 PM)
+        for (let i = 2; i < 4; i++) {
+          const operator = cashiers[i];
+          const device = branchDevices[i % branchDevices.length];
+          const shiftStart = new Date(date);
+          shiftStart.setHours(15, 0, 0, 0);
+          const shiftEnd = new Date(date);
+          shiftEnd.setHours(21, 0, 0, 0);
+
+          const shift = await prisma.shift.create({
+            data: {
+              posShiftId: uuidv4(),
+              posDeviceId: device.id,
+              branchId: branch.id,
+              storeId: store.id,
+              posOperatorId: operator.id,
+              operatorId: operator.id,
+              status: 'CLOSED',
+              openedAt: shiftStart,
+              closedAt: shiftEnd,
+              openingCash: 5000,
+              closingCash: randomBetween(20000, 35000),
+              expectedCash: randomBetween(20000, 35000),
+              variance: randomBetween(-50, 50),
+            },
+          });
+          shifts.push({ shift, operator, device, startHour: 15, endHour: 21 });
         }
 
-        const grandTotal = subtotal - discountTotal;
-        const { vatableSales, vatAmount } = calculateVAT(grandTotal);
+        // Generate orders distributed across shifts
+        for (let i = 0; i < ordersPerBranch; i++) {
+          // Pick a random shift
+          const { shift, operator, device, startHour, endHour } =
+            randomFromArray(shifts);
 
-        // Determine if this order should be voided or refunded (rare)
-        const isVoided = Math.random() < 0.02; // 2% voided
-        const isRefunded = !isVoided && Math.random() < 0.03; // 3% refunded
+          const orderTime = new Date(date);
+          orderTime.setHours(
+            randomBetween(startHour, endHour - 1),
+            randomBetween(0, 59),
+            randomBetween(0, 59),
+          );
 
-        const order = await prisma.order.create({
+          // Random items for this order (2-5 items)
+          const numItems = randomBetween(2, 5);
+          const orderItems: any[] = [];
+          let subtotal = 0;
+
+          for (let j = 0; j < numItems; j++) {
+            const item = randomFromArray(createdItems);
+            const quantity = randomBetween(1, 3);
+            const unitPrice = Number(item.price);
+            const totalPrice = unitPrice * quantity;
+            subtotal += totalPrice;
+
+            orderItems.push({
+              itemId: item.id,
+              itemName: item.name,
+              itemSku: item.sku,
+              quantity,
+              unitPrice,
+              totalPrice,
+              discountAmount: 0,
+              taxAmount: 0,
+            });
+          }
+
+          // Apply occasional discount (20% of orders)
+          let discountTotal = 0;
+          const hasDiscount = Math.random() < 0.2;
+          if (hasDiscount) {
+            discountTotal = Math.round(subtotal * (randomBetween(5, 15) / 100));
+          }
+
+          const grandTotal = subtotal - discountTotal;
+          const { vatableSales, vatAmount } = calculateVAT(grandTotal);
+
+          // Determine if this order should be voided or refunded (rare)
+          const isVoided = Math.random() < 0.02; // 2% voided
+          const isRefunded = !isVoided && Math.random() < 0.03; // 3% refunded
+
+          const order = await prisma.order.create({
+            data: {
+              posOrderId: uuidv4(),
+              posDeviceId: device.id,
+              branchId: branch.id,
+              storeId: store.id,
+              shiftId: shift.id,
+              operatorId: operator.id,
+              orderNumber: `${branch.name.slice(0, 3).toUpperCase()}-${String(month + 1).padStart(2, '0')}${day.toString().padStart(2, '0')}-${i.toString().padStart(4, '0')}`,
+              orderType: randomFromArray(orderTypes) as any,
+              status: isVoided ? 'VOIDED' : isRefunded ? 'REFUNDED' : 'COMPLETED',
+              subtotal,
+              discountTotal,
+              taxTotal: vatAmount,
+              grandTotal,
+              vatableSales,
+              vatAmount,
+              vatExemptSales: 0,
+              zeroRatedSales: 0,
+              posCreatedAt: orderTime,
+              posClosedAt: orderTime,
+              orderItems: {
+                create: orderItems,
+              },
+            },
+          });
+
+          if (!isVoided) {
+            // Create payment
+            const paymentMethod = randomFromArray(paymentMethods);
+            const isCash = paymentMethod === 'CASH';
+            const cashTendered = isCash
+              ? Math.ceil(grandTotal / 100) * 100
+              : grandTotal;
+            const changeAmount = isCash ? cashTendered - grandTotal : 0;
+
+            await prisma.payment.create({
+              data: {
+                posPaymentId: uuidv4(),
+                orderId: order.id,
+                paymentMethod: paymentMethod as any,
+                status: 'COMPLETED',
+                amount: grandTotal,
+                tipAmount: Math.random() < 0.1 ? randomBetween(20, 100) : 0,
+                changeAmount,
+                processedAt: orderTime,
+              },
+            });
+
+            // Create discount record if applicable
+            if (hasDiscount) {
+              await prisma.orderDiscount.create({
+                data: {
+                  orderId: order.id,
+                  discountName: randomFromArray([
+                    'Senior Citizen',
+                    'PWD',
+                    'Promo',
+                    'Loyalty',
+                  ]),
+                  discountType: 'PERCENTAGE',
+                  discountScope: 'ORDER',
+                  discountValue: randomBetween(5, 15),
+                  discountAmount: discountTotal,
+                },
+              });
+            }
+
+            if (isRefunded) {
+              await prisma.refund.create({
+                data: {
+                  posRefundId: uuidv4(),
+                  orderId: order.id,
+                  amount: grandTotal,
+                  reason: randomFromArray([
+                    'Customer complaint',
+                    'Wrong order',
+                    'Quality issue',
+                  ]),
+                  refundMethod: paymentMethod as any,
+                  processedAt: new Date(orderTime.getTime() + 3600000),
+                },
+              });
+            }
+
+            totalRevenue += grandTotal;
+          }
+
+          totalOrders++;
+        }
+
+        // Create Z-Reading for the day
+        const zCounter = (zCounterByBranch.get(branch.id) || 0) + 1;
+        zCounterByBranch.set(branch.id, zCounter);
+        const lastDevice = branchDevices[0];
+        await prisma.zReading.create({
           data: {
-            posOrderId: uuidv4(),
-            posDeviceId: device.id,
+            posDeviceId: lastDevice.id,
             branchId: branch.id,
             storeId: store.id,
-            shiftId: shift.id,
-            operatorId: operator.id,
-            orderNumber: `${branch.name.slice(0, 3).toUpperCase()}-${day.toString().padStart(2, '0')}-${i.toString().padStart(4, '0')}`,
-            orderType: randomFromArray(orderTypes) as any,
-            status: isVoided ? 'VOIDED' : isRefunded ? 'REFUNDED' : 'COMPLETED',
-            subtotal,
-            discountTotal,
-            taxTotal: vatAmount,
-            grandTotal,
-            vatableSales,
-            vatAmount,
+            posZReadingId: uuidv4(),
+            zCounterNo: zCounter,
+            beginningInvoiceNo: `SI-${String((zCounter - 1) * ordersPerBranch + 1).padStart(6, '0')}`,
+            endingInvoiceNo: `SI-${String(zCounter * ordersPerBranch).padStart(6, '0')}`,
+            beginningGrandTotal: (zCounter - 1) * ordersPerBranch * 450,
+            endingGrandTotal: zCounter * ordersPerBranch * 450,
+            grossSales: ordersPerBranch * 500,
+            netSales: ordersPerBranch * 450,
+            vatableSales: ordersPerBranch * 400,
+            vatAmount: ordersPerBranch * 50,
             vatExemptSales: 0,
             zeroRatedSales: 0,
-            posCreatedAt: orderTime,
-            posClosedAt: orderTime,
-            orderItems: {
-              create: orderItems,
-            },
+            discountTotal: ordersPerBranch * 20,
+            refundTotal: ordersPerBranch * 10,
+            voidTotal: ordersPerBranch * 5,
+            transactionCount: ordersPerBranch,
+            voidCount: Math.floor(ordersPerBranch * 0.02),
+            refundCount: Math.floor(ordersPerBranch * 0.03),
+            closedBy: cashiers[0].id,
+            closedAt: new Date(date.getTime() + 21 * 3600000), // 9 PM
           },
         });
 
-        if (!isVoided) {
-          // Create payment
-          const paymentMethod = randomFromArray(paymentMethods);
-          const isCash = paymentMethod === 'CASH';
-          const cashTendered = isCash
-            ? Math.ceil(grandTotal / 100) * 100
-            : grandTotal;
-          const changeAmount = isCash ? cashTendered - grandTotal : 0;
-
-          await prisma.payment.create({
-            data: {
-              posPaymentId: uuidv4(),
-              orderId: order.id,
-              paymentMethod: paymentMethod as any,
-              status: 'COMPLETED',
-              amount: grandTotal,
-              tipAmount: Math.random() < 0.1 ? randomBetween(20, 100) : 0,
-              changeAmount,
-              processedAt: orderTime,
-            },
-          });
-
-          // Create discount record if applicable
-          if (hasDiscount) {
-            await prisma.orderDiscount.create({
-              data: {
-                orderId: order.id,
-                discountName: randomFromArray([
-                  'Senior Citizen',
-                  'PWD',
-                  'Promo',
-                  'Loyalty',
-                ]),
-                discountType: 'PERCENTAGE',
-                discountScope: 'ORDER',
-                discountValue: randomBetween(5, 15),
-                discountAmount: discountTotal,
-              },
-            });
-          }
-
-          if (isRefunded) {
-            await prisma.refund.create({
-              data: {
-                posRefundId: uuidv4(),
-                orderId: order.id,
-                amount: grandTotal,
-                reason: randomFromArray([
-                  'Customer complaint',
-                  'Wrong order',
-                  'Quality issue',
-                ]),
-                refundMethod: paymentMethod as any,
-                processedAt: new Date(orderTime.getTime() + 3600000),
-              },
-            });
-          }
-
-          totalRevenue += grandTotal;
-        }
-
-        totalOrders++;
+        monthOrders += ordersPerBranch;
       }
-
-      // Create Z-Reading for the day
-      const lastDevice = branchDevices[0];
-      await prisma.zReading.create({
-        data: {
-          posDeviceId: lastDevice.id,
-          branchId: branch.id,
-          storeId: store.id,
-          posZReadingId: uuidv4(),
-          zCounterNo: day,
-          beginningInvoiceNo: `SI-${String((day - 1) * ordersPerBranch + 1).padStart(6, '0')}`,
-          endingInvoiceNo: `SI-${String(day * ordersPerBranch).padStart(6, '0')}`,
-          beginningGrandTotal: (day - 1) * ordersPerBranch * 450,
-          endingGrandTotal: day * ordersPerBranch * 450,
-          grossSales: ordersPerBranch * 500,
-          netSales: ordersPerBranch * 450,
-          vatableSales: ordersPerBranch * 400,
-          vatAmount: ordersPerBranch * 50,
-          vatExemptSales: 0,
-          zeroRatedSales: 0,
-          discountTotal: ordersPerBranch * 20,
-          refundTotal: ordersPerBranch * 10,
-          voidTotal: ordersPerBranch * 5,
-          transactionCount: ordersPerBranch,
-          voidCount: Math.floor(ordersPerBranch * 0.02),
-          refundCount: Math.floor(ordersPerBranch * 0.03),
-          closedBy: cashiers[0].id,
-          closedAt: new Date(date.getTime() + 21 * 3600000), // 9 PM
-        },
-      });
     }
 
-    if (day % 7 === 0 || day === 31) {
-      console.log(
-        `   ✓ January ${day}: Generated ${ordersPerBranch * 5} orders across 5 branches`,
-      );
-    }
+    console.log(`   ✓ ${monthNames[month]} 2026: ~${monthOrders} orders across 5 branches`);
   }
 
   // ========== SUMMARY ==========
@@ -911,7 +935,7 @@ async function main() {
   console.log(
     `   Users: ${createdUsers.length} (1 admin + 5 managers + 20 cashiers)`,
   );
-  console.log(`   Orders: ~${totalOrders} (January 2026)`);
+  console.log(`   Orders: ~${totalOrders} (Jan - Jun 2026)`);
   console.log(`   Revenue: ~₱${totalRevenue.toLocaleString()}`);
   console.log('\n🔐 Login credentials (password: admin123):');
   console.log('   - admin@demo.com (Admin - Full Access)');

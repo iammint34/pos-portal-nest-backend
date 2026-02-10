@@ -56,6 +56,21 @@ const permissions = [
   { code: 'alert.dismiss', name: 'Dismiss Alerts', module: 'alert', description: 'Permission to dismiss alerts' },
   { code: 'alert.config', name: 'Configure Alerts', module: 'alert', description: 'Permission to configure alert thresholds and settings' },
 
+  // Loss Prevention permissions
+  { code: 'loss_prevention.read', name: 'View Loss Prevention', module: 'loss_prevention', description: 'Permission to view LP dashboard, thresholds, and incidents' },
+  { code: 'loss_prevention.manage', name: 'Manage Loss Prevention', module: 'loss_prevention', description: 'Permission to create/update/delete thresholds and resolve incidents' },
+
+  // Notification permissions
+  { code: 'notification.read', name: 'View Notifications', module: 'notification', description: 'Permission to view notification logs and preferences' },
+  { code: 'notification.manage', name: 'Manage Notifications', module: 'notification', description: 'Permission to update preferences, schedules, and send test notifications' },
+
+  // Clone permissions
+  { code: 'clone.read', name: 'View Clone Jobs', module: 'clone', description: 'Permission to view clone job history and previews' },
+  { code: 'clone.create', name: 'Clone Store/Branch', module: 'clone', description: 'Permission to clone stores and branches' },
+
+  // Report permissions
+  { code: 'report.read', name: 'View Reports', module: 'report', description: 'Permission to view sales and analytics reports' },
+
   // POS Function permissions (synced to POS devices for fine-grained feature gating)
   { code: 'pos_function.void_order', name: 'Void Order', module: 'pos_function', description: 'Permission to void an entire order on POS' },
   { code: 'pos_function.apply_discount', name: 'Apply Discount', module: 'pos_function', description: 'Permission to apply discounts to orders/items on POS' },

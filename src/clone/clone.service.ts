@@ -177,20 +177,6 @@ export class CloneService {
       // Table might not exist yet
     }
 
-    // Count store features
-    try {
-      const featureCount = await (this.prisma as any).storeFeature.count({
-        where: { storeId: sourceStoreId },
-      });
-      elements.push({
-        element: 'Feature Flags',
-        count: featureCount,
-        willClone: mergedConfig.storeFeatures ?? false,
-      });
-    } catch {
-      // Table might not exist yet
-    }
-
     const totalItems = elements
       .filter((e) => e.willClone)
       .reduce((sum, e) => sum + e.count, 0);
@@ -479,28 +465,6 @@ export class CloneService {
                   timeWindow: t.timeWindow,
                   scope: t.scope,
                   enabled: t.enabled,
-                })),
-              });
-            }
-          } catch {
-            // Table might not exist yet
-          }
-        }
-
-        // 6. Clone store features (if explicitly requested)
-        if (config.storeFeatures) {
-          try {
-            const features = await (tx as any).storeFeature.findMany({
-              where: { storeId: dto.sourceStoreId },
-            });
-
-            if (features.length > 0) {
-              await (tx as any).storeFeature.createMany({
-                data: features.map((f: any) => ({
-                  storeId: newStore.id,
-                  featureKey: f.featureKey,
-                  enabled: f.enabled,
-                  config: f.config,
                 })),
               });
             }

@@ -3,8 +3,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { LossPreventionService } from './loss-prevention.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { FeatureFlagsService } from '../feature-flags/feature-flags.service';
-import { FeatureKey } from '../feature-flags/feature-flags.constants';
 import {
   LossPreventionMetricType,
   LossPreventionTimeWindow,
@@ -25,7 +23,6 @@ export class LossPreventionEvaluatorService {
     private prisma: PrismaService,
     private lossPreventionService: LossPreventionService,
     private notificationsService: NotificationsService,
-    private featureFlagsService: FeatureFlagsService,
   ) {}
 
   /**
@@ -37,7 +34,7 @@ export class LossPreventionEvaluatorService {
 
     try {
       // Get all stores with loss prevention enabled
-      const stores = await this.getStoresWithFeatureEnabled();
+      const stores = await this.getStoresWithThresholds();
 
       for (const store of stores) {
         await this.evaluateStore(store.id);
@@ -52,18 +49,18 @@ export class LossPreventionEvaluatorService {
   }
 
   /**
-   * Get stores that have loss prevention feature enabled
+   * Get stores that have loss prevention thresholds configured
    */
-  private async getStoresWithFeatureEnabled(): Promise<Array<{ id: string }>> {
-    const storeFeatures = await (this.prisma as any).storeFeature.findMany({
-      where: {
-        featureKey: FeatureKey.LOSS_PREVENTION,
-        enabled: true,
-      },
+  private async getStoresWithThresholds(): Promise<Array<{ id: string }>> {
+    const thresholds = await (
+      this.prisma as any
+    ).lossPreventionThreshold.findMany({
+      where: { enabled: true },
       select: { storeId: true },
+      distinct: ['storeId'],
     });
 
-    return storeFeatures.map((sf: any) => ({ id: sf.storeId }));
+    return thresholds.map((t: any) => ({ id: t.storeId }));
   }
 
   /**

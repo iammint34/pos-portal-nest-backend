@@ -21,11 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../common/guards/permissions.guard';
-import { FeatureFlagGuard } from '../common/guards/feature-flag.guard';
 import { Permissions } from '../common/decorators/permissions.decorator';
-import { RequireFeature } from '../common/decorators/feature-flag.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { FeatureKey } from '../feature-flags/feature-flags.constants';
 import { LossPreventionService } from './loss-prevention.service';
 import { LossPreventionEvaluatorService } from './loss-prevention-evaluator.service';
 import {
@@ -57,9 +54,8 @@ class ResolveIncidentDto {
 
 @ApiTags('Loss Prevention')
 @ApiBearerAuth()
-@Controller('api/v1/stores/:storeId/loss-prevention')
-@UseGuards(JwtAuthGuard, PermissionsGuard, FeatureFlagGuard)
-@RequireFeature(FeatureKey.LOSS_PREVENTION)
+@Controller('stores/:storeId/loss-prevention')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class LossPreventionController {
   constructor(
     private readonly lossPreventionService: LossPreventionService,
@@ -69,7 +65,7 @@ export class LossPreventionController {
   // ==================== Dashboard ====================
 
   @Get('dashboard')
-  @Permissions('store.read')
+  @Permissions('loss_prevention.read')
   @ApiOperation({ summary: 'Get loss prevention dashboard summary' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 200, description: 'Dashboard summary retrieved' })
@@ -80,7 +76,7 @@ export class LossPreventionController {
   // ==================== Thresholds ====================
 
   @Get('thresholds')
-  @Permissions('store.read')
+  @Permissions('loss_prevention.read')
   @ApiOperation({ summary: 'Get all loss prevention thresholds' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 200, description: 'Thresholds retrieved' })
@@ -89,7 +85,7 @@ export class LossPreventionController {
   }
 
   @Post('thresholds')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @ApiOperation({ summary: 'Create a new threshold' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiResponse({ status: 201, description: 'Threshold created' })
@@ -104,7 +100,7 @@ export class LossPreventionController {
   }
 
   @Post('thresholds/initialize')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Initialize default thresholds for store' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -116,7 +112,7 @@ export class LossPreventionController {
   }
 
   @Patch('thresholds/:thresholdId')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @ApiOperation({ summary: 'Update a threshold' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiParam({ name: 'thresholdId', description: 'Threshold ID' })
@@ -134,7 +130,7 @@ export class LossPreventionController {
   }
 
   @Delete('thresholds/:thresholdId')
-  @Permissions('store.delete')
+  @Permissions('loss_prevention.manage')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a threshold' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -150,7 +146,7 @@ export class LossPreventionController {
   // ==================== Incidents ====================
 
   @Get('incidents')
-  @Permissions('store.read')
+  @Permissions('loss_prevention.read')
   @ApiOperation({ summary: 'Get loss prevention incidents' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiQuery({ name: 'branchId', required: false })
@@ -194,7 +190,7 @@ export class LossPreventionController {
   }
 
   @Get('incidents/stats')
-  @Permissions('store.read')
+  @Permissions('loss_prevention.read')
   @ApiOperation({ summary: 'Get incident statistics' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiQuery({ name: 'startDate', required: false })
@@ -213,7 +209,7 @@ export class LossPreventionController {
   }
 
   @Get('incidents/:incidentId')
-  @Permissions('store.read')
+  @Permissions('loss_prevention.read')
   @ApiOperation({ summary: 'Get a specific incident' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
   @ApiParam({ name: 'incidentId', description: 'Incident ID' })
@@ -228,7 +224,7 @@ export class LossPreventionController {
   }
 
   @Post('incidents/:incidentId/acknowledge')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Acknowledge an incident' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -242,7 +238,7 @@ export class LossPreventionController {
   }
 
   @Post('incidents/:incidentId/resolve')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Resolve an incident' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -257,7 +253,7 @@ export class LossPreventionController {
   }
 
   @Post('incidents/:incidentId/escalate')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Escalate an incident' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })
@@ -273,7 +269,7 @@ export class LossPreventionController {
   // ==================== Evaluation ====================
 
   @Post('evaluate')
-  @Permissions('store.update')
+  @Permissions('loss_prevention.manage')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger manual evaluation' })
   @ApiParam({ name: 'storeId', description: 'Store ID' })

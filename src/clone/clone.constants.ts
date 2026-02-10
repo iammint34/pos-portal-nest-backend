@@ -20,7 +20,6 @@ export enum CloneableElement {
   ROLES = 'roles',
   ITEM_BRANCHES = 'itemBranches',
   LOSS_PREVENTION_THRESHOLDS = 'lossPreventionThresholds',
-  STORE_FEATURES = 'storeFeatures',
 }
 
 // Default clone configuration
@@ -35,7 +34,6 @@ export const DEFAULT_STORE_CLONE_CONFIG = {
   categories: true,
   roles: true,
   lossPreventionThresholds: true,
-  storeFeatures: false, // Features should be explicitly enabled
 };
 
 // Elements included in each clone type
@@ -46,5 +44,4 @@ export const STORE_CLONEABLE_ELEMENTS = [
   CloneableElement.CATEGORIES,
   CloneableElement.ROLES,
   CloneableElement.LOSS_PREVENTION_THRESHOLDS,
-  CloneableElement.STORE_FEATURES,
 ];

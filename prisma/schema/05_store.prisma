@@ -28,7 +28,6 @@ model Store {
   auditLogs  AuditLog[]
 
   // Enhancement Relations
-  storeFeatures            StoreFeature[]
   notificationPreferences  NotificationPreference[]
   notificationLogs         NotificationLog[]
   notificationSchedules    NotificationSchedule[]
