@@ -9,37 +9,37 @@ if (process.env.NODE_ENV === 'production') {
 
 const prisma = new PrismaClient();
 
-// Pre-generated UUIDs for consistent demo data
+// Pre-generated UUIDs for consistent demo data (valid UUID v4 format)
 const DEMO_STORE_ID = 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d';
 
 // 5 Branches
 const BRANCHES = [
   {
-    id: 'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
+    id: 'b2c3d4e5-f6a7-4b6c-9d0e-1f2a3b4c5d6e',
     name: 'Makati Branch',
     address: '456 Ayala Avenue, Makati City, Metro Manila 1226',
     phone: '+63 2 8123 4567',
   },
   {
-    id: 'c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f',
+    id: 'c3d4e5f6-a7b8-4c7d-8e1f-2a3b4c5d6e7f',
     name: 'BGC Branch',
     address: '789 Bonifacio High Street, Taguig City, Metro Manila 1634',
     phone: '+63 2 8234 5678',
   },
   {
-    id: 'd4e5f6a7-b8c9-7d8e-1f2a-3b4c5d6e7f8a',
+    id: 'd4e5f6a7-b8c9-4d8e-9f2a-3b4c5d6e7f8a',
     name: 'Quezon City Branch',
     address: '123 Tomas Morato Avenue, Quezon City, Metro Manila 1103',
     phone: '+63 2 8345 6789',
   },
   {
-    id: 'e5f6a7b8-c9d0-8e9f-2a3b-4c5d6e7f8a9b',
+    id: 'e5f6a7b8-c9d0-4e9f-aa3b-4c5d6e7f8a9b',
     name: 'Ortigas Branch',
     address: '567 Ortigas Avenue, Pasig City, Metro Manila 1605',
     phone: '+63 2 8456 7890',
   },
   {
-    id: 'f6a7b8c9-d0e1-9f0a-3b4c-5d6e7f8a9b0c',
+    id: 'f6a7b8c9-d0e1-4f0a-bb4c-5d6e7f8a9b0c',
     name: 'Alabang Branch',
     address: '890 Alabang-Zapote Road, Muntinlupa City, Metro Manila 1780',
     phone: '+63 2 8567 8901',
