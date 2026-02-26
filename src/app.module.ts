@@ -17,11 +17,10 @@ import { SalesModule } from './sales/sales.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { ReportsModule } from './reports/reports.module';
 import { InventoryModule } from './inventory/inventory.module';
-import { AlertsModule } from './alerts/alerts.module';
 import { CloneModule } from './clone/clone.module';
 import { JobsModule } from './jobs/jobs.module';
-import { NotificationsModule } from './notifications/notifications.module';
 import { LossPreventionModule } from './loss-prevention/loss-prevention.module';
+import { UploadsModule } from './uploads/uploads.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { PosDeviceGuard } from './common/guards';
 
@@ -45,11 +44,10 @@ import { PosDeviceGuard } from './common/guards';
     ShiftsModule,
     ReportsModule,
     InventoryModule,
-    AlertsModule,
     CloneModule,
     JobsModule.forRoot(),
-    NotificationsModule,
     LossPreventionModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [

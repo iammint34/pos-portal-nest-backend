@@ -33,6 +33,11 @@ export class CreateItemDto {
   @IsString()
   description?: string;
 
+  @ApiPropertyOptional({ example: 'https://example.com/burger.jpg' })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
   @ApiProperty({ example: 9.99 })
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
@@ -71,6 +76,11 @@ export class UpdateItemDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/burger.jpg' })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 
   @ApiPropertyOptional({ example: 12.99 })
   @IsOptional()

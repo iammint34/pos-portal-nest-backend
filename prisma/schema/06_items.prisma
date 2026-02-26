@@ -28,6 +28,7 @@ model Item {
   sku         String?
   name        String
   description String?   @db.Text
+  imageUrl    String?   @map("image_url") @db.VarChar(500)
   price       Decimal   @db.Decimal(10, 2)
   costPrice   Decimal?  @map("cost_price") @db.Decimal(10, 2) // For margin calculation in Menu Analytics
   isActive    Boolean   @default(true) @map("is_active")

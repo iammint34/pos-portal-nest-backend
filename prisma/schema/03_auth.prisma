@@ -19,8 +19,6 @@ model User {
   shifts        Shift[]
 
   // Enhancement Relations
-  notificationPreferences NotificationPreference[]
-  notificationLogs        NotificationLog[]
   incidentsAsStaff        LossPreventionIncident[] @relation("IncidentStaff")
   incidentsResolved       LossPreventionIncident[] @relation("IncidentResolver")
   cloneJobs               CloneJob[]

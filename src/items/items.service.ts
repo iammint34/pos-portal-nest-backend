@@ -43,6 +43,7 @@ export class ItemsService {
         name: createItemDto.name,
         sku: createItemDto.sku,
         description: createItemDto.description,
+        imageUrl: createItemDto.imageUrl,
         price: createItemDto.price,
         categoryId: createItemDto.categoryId,
         isActive: createItemDto.isActive ?? true,

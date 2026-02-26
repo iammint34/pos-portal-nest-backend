@@ -312,7 +312,6 @@ export class ReportsController {
   async getTopSellingItems(
     @CurrentUser() user: CurrentUserData,
     @Query() dto: ReportQueryDto,
-    @Query('top') top?: number,
   ) {
     const effectiveStoreId = user?.storeId || dto.storeId;
     if (!effectiveStoreId)
@@ -320,7 +319,7 @@ export class ReportsController {
     return this.reportsService.getTopSellingItems(
       effectiveStoreId,
       dto,
-      top || 10,
+      dto.top || 10,
     );
   }
 

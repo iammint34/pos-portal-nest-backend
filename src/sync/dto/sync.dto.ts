@@ -86,6 +86,7 @@ export class SyncItemDto {
   sku?: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   price: number;
   isActive: boolean;
   isAvailable: boolean;

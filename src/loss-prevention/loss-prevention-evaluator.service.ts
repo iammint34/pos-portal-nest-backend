@@ -2,12 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { LossPreventionService } from './loss-prevention.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import {
   LossPreventionMetricType,
   LossPreventionTimeWindow,
   LossPreventionScope,
-  AlertSeverity,
 } from './loss-prevention.constants';
 import type {
   LossPreventionThreshold,
@@ -22,7 +20,6 @@ export class LossPreventionEvaluatorService {
   constructor(
     private prisma: PrismaService,
     private lossPreventionService: LossPreventionService,
-    private notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -428,42 +425,15 @@ export class LossPreventionEvaluatorService {
   }
 
   /**
-   * Send notifications for new incidents
+   * Log new incidents (notifications temporarily disabled)
    */
   private async sendIncidentNotifications(
-    storeId: string,
+    _storeId: string,
     incidents: any[],
   ): Promise<void> {
-    const store = await this.prisma.store.findUnique({
-      where: { id: storeId },
-      select: { name: true },
-    });
-
-    for (const incident of incidents) {
-      try {
-        await this.notificationsService.sendAlertNotification(storeId, {
-          storeId,
-          storeName: store?.name || 'Unknown Store',
-          alertType: 'LOSS_PREVENTION',
-          severity: incident.severity || AlertSeverity.WARNING,
-          title: `Loss Prevention Alert: ${incident.metricType}`,
-          message: `${incident.metricType} exceeded threshold: ${incident.actualValue} (threshold: ${incident.thresholdValue})`,
-          metadata: {
-            branchId: incident.branchId,
-            staffId: incident.staffId,
-            metricType: incident.metricType,
-            actualValue: incident.actualValue,
-            thresholdValue: incident.thresholdValue,
-          },
-          createdAt: new Date(),
-        });
-      } catch (error) {
-        this.logger.error(
-          `Failed to send notification for incident ${incident.id}`,
-          error,
-        );
-      }
-    }
+    this.logger.log(
+      `${incidents.length} new loss prevention incident(s) detected`,
+    );
   }
 
   /**

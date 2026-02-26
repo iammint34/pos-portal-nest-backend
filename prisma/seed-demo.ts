@@ -436,12 +436,8 @@ async function main() {
       'inventory.read',
       'inventory.receive',
       'loss_prevention.read',
-      'notification.read',
-      'notification.manage',
       'clone.read',
       'report.read',
-      'alert.read',
-      'alert.acknowledge',
       'audit.read',
     ].includes(p.code),
   );

@@ -33,7 +33,7 @@ model LossPreventionIncident {
   timeWindow     LossPreventionTimeWindow @map("time_window")
   transactions   Json // Array of related transaction/order IDs
   status         IncidentStatus           @default(OPEN)
-  severity       AlertSeverity            @default(WARNING)
+  severity       LossPreventionSeverity   @default(WARNING)
   resolution     String?                  @db.Text
   resolvedBy     String?                  @map("resolved_by")
   resolvedAt     DateTime?                @map("resolved_at")

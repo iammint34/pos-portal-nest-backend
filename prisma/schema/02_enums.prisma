@@ -145,49 +145,15 @@ enum AuditAction {
 }
 
 // =====================
-// Alert Enums
+// Loss Prevention Enums
 // =====================
 
-enum AlertType {
-  ZERO_SALES_BRANCH
-  EXCESSIVE_VOID_REFUND
-  INVENTORY_ANOMALY
-  POS_SYNC_FAILURE
-}
-
-enum AlertSeverity {
+enum LossPreventionSeverity {
   INFO
   WARNING
   CRITICAL
 }
 
-// =====================
-// Notification Enums
-// =====================
-
-enum NotificationType {
-  DAILY_DIGEST
-  WEEKLY_SUMMARY
-  LOSS_PREVENTION_ALERT
-  DEVICE_OFFLINE
-  SYNC_FAILURE
-  SYSTEM_ALERT
-}
-
-enum NotificationChannel {
-  EMAIL
-  SMS
-}
-
-enum NotificationStatus {
-  PENDING
-  SENT
-  FAILED
-  BOUNCED
-}
-
-// =====================
-// Loss Prevention Enums
 // =====================
 
 enum LossPreventionMetricType {
